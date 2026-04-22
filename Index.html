@@ -326,21 +326,21 @@
       </div>
     </div>
 
-    <!-- Middle row -->
-    <div style="display:flex;gap:4px;align-items:stretch;width:100%;">
+    <!-- Middle row — octagon with absolutely positioned side panels -->
+    <div style="position:relative;width:100%;">
 
-      <!-- Left panels -->
-      <div style="display:flex;flex-direction:column;gap:4px;width:30px;flex-shrink:0;">
-        <div class="cage-panel adsense-panel" style="width:30px;flex:1;min-height:150px;">
+      <!-- Left panel -->
+      <div style="position:absolute;left:0;top:0;bottom:0;width:30px;display:flex;flex-direction:column;gap:4px;z-index:1;">
+        <div class="cage-panel adsense-panel" style="flex:1;">
           <span style="font-size:7px;color:#2a2a2a;writing-mode:vertical-rl;">Ad</span>
         </div>
-        <div class="cage-panel sponsor-panel" style="width:30px;flex:1;min-height:100px;">
+        <div class="cage-panel sponsor-panel" style="flex:1;">
           <span style="font-size:7px;color:#333;writing-mode:vertical-rl;">Ad</span>
         </div>
       </div>
 
       <!-- Game Container -->
-      <div id="gameContainer" class="octagon relative w-full max-w-5xl h-[95vh] max-h-[920px] bg-gray-900 border-8 border-ufc-muted p-4 sm:p-6 flex flex-col items-center justify-start gap-2 transition-all duration-300" style="flex:1;display:flex;">
+      <div id="gameContainer" class="octagon relative w-full max-w-5xl h-[95vh] max-h-[920px] bg-gray-900 border-8 border-ufc-muted p-4 sm:p-6 flex flex-col items-center justify-start gap-2 transition-all duration-300" style="margin:0 34px;display:flex;">
     <header class="w-full flex items-center justify-center relative px-4 mb-0">
       <h1 id="title" class="font-bold tracking-wide text-center" style="display:flex;align-items:center;justify-content:center;gap:10px;">
         <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
@@ -409,12 +409,12 @@
     </div>
   </div> <!-- end gameContainer -->
 
-      <!-- Right panels -->
-      <div style="display:flex;flex-direction:column;gap:4px;width:30px;flex-shrink:0;">
-        <div class="cage-panel sponsor-panel" style="width:30px;flex:1;min-height:100px;">
+      <!-- Right panel -->
+      <div style="position:absolute;right:0;top:0;bottom:0;width:30px;display:flex;flex-direction:column;gap:4px;z-index:1;">
+        <div class="cage-panel sponsor-panel" style="flex:1;">
           <span style="font-size:7px;color:#333;writing-mode:vertical-rl;">Ad</span>
         </div>
-        <div class="cage-panel adsense-panel" style="width:30px;flex:1;min-height:150px;">
+        <div class="cage-panel adsense-panel" style="flex:1;">
           <span style="font-size:7px;color:#2a2a2a;writing-mode:vertical-rl;">Ad</span>
         </div>
       </div>
