@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fight Trivia</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3662032261764585" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --ufc-red: #e50914;
+        --ufc-dark: #111;
+        --ufc-muted: #444;
+        --ufc-good: #2ecc71;
+        --ufc-bad: #ff4d4d;
+        --ufc-gold: #ffd966;
+      }
+
+      /* ── Page background — deep cage atmosphere ── */
+      body {
+        background: radial-gradient(ellipse at center, #0d1117 0%, #060809 100%);
+        font-family: 'Inter', sans-serif;
+      }
+
+      .bg-ufc-red { background-color: var(--ufc-red); }
+      .border-ufc-red { border-color: var(--ufc-red); }
+      .border-ufc-muted { border-color: var(--ufc-muted); }
+      .bg-ufc-good { background-color: var(--ufc-good); }
+      .text-ufc-good { color: var(--ufc-good); }
+      #momentum-bar { background: linear-gradient(to right, var(--ufc-gold), var(--ufc-good)); }
+
+      /* ── Game container — richer dark + cage fence texture ── */
+      #gameContainer {
+        background:
+          repeating-linear-gradient(0deg,   transparent, transparent 28px, rgba(255,255,255,0.018) 28px, rgba(255,255,255,0.018) 29px),
+          repeating-linear-gradient(90deg,  transparent, transparent 28px, rgba(255,255,255,0.018) 28px, rgba(255,255,255,0.018) 29px),
+          radial-gradient(ellipse at 50% 30%, #1a1f2e 0%, #0d1117 70%) !important;
+        border-color: #2a2f3e !important;
+        box-shadow: inset 0 0 80px rgba(229,9,20,0.04), 0 0 60px rgba(0,0,0,0.8);
+      }
+
+      /* ── Page title ── */
+      #title {
+        font-family: 'Bebas Neue', sans-serif !important;
+        font-size: 2.4rem !important;
+        letter-spacing: 6px;
+        color: #fff;
+        text-shadow: 0 0 30px rgba(229,9,20,0.5), 0 2px 4px rgba(0,0,0,0.8);
+      }
+
+      /* ── Round label ── */
+      #round-label {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.1rem;
+        letter-spacing: 2px;
+        color: var(--ufc-red);
+      }
+
+      /* ── Question card ── */
+      #question {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-left: 3px solid var(--ufc-red);
+        border-radius: 12px;
+        padding: 20px 28px !important;
+        font-size: 1.25rem !important;
+        font-weight: 700;
+        line-height: 1.5;
+        width: 75%;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+      }
+
+      /* ── Answer input ── */
+      #answer {
+        background: rgba(255,255,255,0.04) !important;
+        border: 1px solid rgba(255,255,255,0.12) !important;
+        border-radius: 10px !important;
+        color: #fff !important;
+        font-size: 1rem;
+        text-align: center;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+      #answer:focus {
+        border-color: var(--ufc-red) !important;
+        box-shadow: 0 0 0 3px rgba(229,9,20,0.2) !important;
+        outline: none !important;
+      }
+
+      /* ── Submit button ── */
+      #submit-btn:not([disabled]) {
+        background: var(--ufc-red) !important;
+        border-radius: 10px !important;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 16px rgba(229,9,20,0.4);
+        transition: transform 0.1s, box-shadow 0.1s;
+      }
+      #submit-btn:not([disabled]):hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(229,9,20,0.5);
+      }
+      #submit-btn:not([disabled]):active { transform: scale(0.97); }
+
+      /* ── Next button ── */
+      #next-btn {
+        border-radius: 10px !important;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 16px rgba(229,9,20,0.35);
+        transition: transform 0.1s, box-shadow 0.1s;
+      }
+      #next-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(229,9,20,0.5); }
+
+      /* ── Score / Best row ── */
+      #score-label {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.1rem;
+        letter-spacing: 2px;
+        color: var(--ufc-red);
+      }
+      #high-score-display {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.1rem;
+        letter-spacing: 2px;
+        color: var(--ufc-gold);
+      }
+
+      /* ── Result text ── */
+      #result {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 10px;
+        padding: 12px 18px;
+        width: 75%;
+        line-height: 1.6;
+      }
+      #result:empty { display: none; }
+
+      /* ── Round info ── */
+      #round-info {
+        font-size: 0.75rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: #555;
+      }
+
+      .welcome-screen {
+        text-align: center;
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+        padding: 50px; border-radius: 25px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        max-width: 700px; width: 90%;
+        border: 4px solid var(--ufc-red);
+        color: white; position: relative; overflow: hidden;
+      }
+      .welcome-screen::before {
+        content: ''; position: absolute; top: -50%; left: -50%;
+        width: 200%; height: 200%;
+        background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(229,9,20,0.03) 10px, rgba(229,9,20,0.03) 20px);
+        animation: slide 20s linear infinite; pointer-events: none;
+      }
+      @keyframes slide { 0%{transform:translate(0,0);} 100%{transform:translate(50px,50px);} }
+      .welcome-screen > * { position: relative; z-index: 1; }
+      #welcomeStartBtn:hover { transform: scale(1.05); box-shadow: 0 12px 35px rgba(229,9,20,0.4); }
+      #rulesToggle:hover { background: rgba(255,255,255,0.2); border-color: var(--ufc-red); }
+      #rulesContent { max-height: 0; }
+      #rulesContent.open { max-height: 1000px; }
+
+      .octagon { clip-path: polygon(30% 0%,70% 0%,100% 30%,100% 70%,70% 100%,30% 100%,0% 70%,0% 30%); }
+      @media (max-width:640px){ .octagon{ clip-path:polygon(20% 0%,80% 0%,100% 20%,100% 80%,80% 100%,20% 100%,0% 80%,0% 20%); } }
+
+      .spinner { clip-path: polygon(30% 0%,70% 0%,100% 30%,100% 70%,70% 100%,30% 100%,0% 70%,0% 30%); animation: spin 1s linear infinite; }
+      @keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+
+      .flash-good { box-shadow: 0 0 40px rgba(46,204,113,0.25),inset 0 0 40px rgba(46,204,113,0.05); border-color:#2ecc71!important; animation:flashbg 350ms ease; }
+      .flash-bad  { box-shadow: 0 0 40px rgba(255,77,77,0.25), inset 0 0 40px rgba(255,77,77,0.05);  border-color:#ff4d4d!important; animation:flashbg 350ms ease; }
+      @keyframes flashbg { 0%{transform:scale(1);} 50%{transform:scale(1.01);} 100%{transform:scale(1);} }
+
+      .pop-in { animation: pop .28s ease; }
+      @keyframes pop { 0%{transform:translate(-50%,-50%) scale(.8);opacity:0;} 100%{transform:translate(-50%,-50%) scale(1);opacity:1;} }
+      .fade-in { animation: fadeIn .28s ease forwards; }
+      @keyframes fadeIn { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
+      .fade-out { animation: fadeOut .28s ease forwards; }
+      @keyframes fadeOut { from{opacity:1;transform:translateY(0);} to{opacity:0;transform:translateY(6px);} }
+
+      @media (prefers-reduced-motion:reduce) {
+        .spinner{animation:none;}
+        .flash-good,.flash-bad,.pop-in,.fade-in,.fade-out{animation:none!important;}
+        *{transition:none!important;}
+      }
+      button:focus-visible { outline:3px solid var(--ufc-red); outline-offset:2px; }
+      input:focus-visible  { outline:3px solid var(--ufc-red); outline-offset:2px; }
+
+      /* ── Cage ad panels ── */
+      .cage-panel {
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.03);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        min-height: 80px;
+        flex: 1;
+      }
+      .cage-panel-side {
+        width: 120px;
+        min-height: 150px;
+        flex: none;
+      }
+      .sponsor-panel {
+        border: 1px dashed rgba(255,255,255,0.12);
+        gap: 4px;
+      }
+      .cage-panel-label {
+        font-size: 10px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: #444;
+      }
+      .cage-panel-link {
+        font-size: 10px;
+        color: var(--ufc-red);
+        text-decoration: none;
+        letter-spacing: 1px;
+        opacity: 0.7;
+      }
+      .cage-panel-link:hover { opacity: 1; }
+      .adsense-panel { background: rgba(255,255,255,0.02); }
+      .flag-modal-backdrop { position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:9999; }
+      .flag-modal { background:#111;border:2px solid var(--ufc-red);border-radius:14px;padding:24px;width:90%;max-width:380px;color:#fff; }
+      .flag-modal h3 { font-size:1rem;font-weight:800;letter-spacing:1px;margin-bottom:12px; }
+      .flag-modal textarea { width:100%;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;padding:10px 12px;font-size:13px;font-family:inherit;resize:vertical;min-height:80px;margin-bottom:12px;outline:none; }
+      .flag-modal textarea:focus { border-color:var(--ufc-red); }
+      .flag-modal-btns { display:flex;gap:8px;justify-content:flex-end; }
+      .flag-cancel { background:transparent;border:1px solid #444;color:#aaa;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px; }
+      .flag-send   { background:var(--ufc-red);border:none;color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700; }
+      .flag-q-preview { font-size:12px;color:#666;margin-bottom:10px;font-style:italic;line-height:1.4; }
+    </style>
+</head>
+<body class="bg-black min-h-screen flex items-center justify-center p-4 text-white">
+
+  <!-- Welcome Screen -->
+  <div id="welcomeScreen" class="welcome-screen">
+    <h1 style="font-family:'Bebas Neue',sans-serif;font-size:4rem;margin-bottom:6px;letter-spacing:4px;text-shadow:3px 3px 12px rgba(229,9,20,0.4);display:flex;align-items:center;justify-content:center;gap:16px;">
+      <svg width="48" height="48" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="16" y="42" width="32" height="14" rx="5" fill="#b00710"/>
+        <rect x="16" y="48" width="32" height="3" rx="1.5" fill="#880008" opacity="0.6"/>
+        <rect x="14" y="22" width="36" height="24" rx="10" fill="#e50914"/>
+        <rect x="14" y="18" width="36" height="12" rx="6" fill="#ff2a2a"/>
+        <rect x="24" y="18" width="2" height="10" rx="1" fill="#c00810"/>
+        <rect x="34" y="18" width="2" height="10" rx="1" fill="#c00810"/>
+        <ellipse cx="14" cy="28" rx="5" ry="8" fill="#cc0812" transform="rotate(-10 14 28)"/>
+        <ellipse cx="32" cy="26" rx="8" ry="4" fill="white" opacity="0.07"/>
+      </svg>
+      FIGHT TRIVIA
+      <svg width="48" height="48" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="transform:scaleX(-1);">
+        <rect x="16" y="42" width="32" height="14" rx="5" fill="#0a3d8f"/>
+        <rect x="16" y="48" width="32" height="3" rx="1.5" fill="#072d6b" opacity="0.6"/>
+        <rect x="14" y="22" width="36" height="24" rx="10" fill="#1565c0"/>
+        <rect x="14" y="18" width="36" height="12" rx="6" fill="#1976d2"/>
+        <rect x="24" y="18" width="2" height="10" rx="1" fill="#0a3d8f"/>
+        <rect x="34" y="18" width="2" height="10" rx="1" fill="#0a3d8f"/>
+        <ellipse cx="14" cy="28" rx="5" ry="8" fill="#1255a8" transform="rotate(-10 14 28)"/>
+        <ellipse cx="32" cy="26" rx="8" ry="4" fill="white" opacity="0.07"/>
+      </svg>
+    </h1>
+    <p style="font-size:1.1rem;color:#a0a0a0;margin-bottom:10px;font-style:italic;">Test your MMA knowledge.</p>
+    <p style="font-size:0.95rem;color:#a0a0a0;margin-bottom:30px;font-style:italic;">New fights every Monday, Wednesday &amp; Saturday.</p>
+    <div style="background:rgba(229,9,20,0.15);border:2px solid #e50914;border-radius:15px;padding:20px;margin:25px 0;">
+      <p style="color:#fff;font-weight:bold;margin-bottom:15px;">HOW IT WORKS</p>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-top:15px;">
+        <div style="background:rgba(255,255,255,0.05);padding:15px;border-radius:10px;border-left:3px solid #e50914;"><div style="color:#e50914;font-weight:bold;font-size:0.9rem;margin-bottom:5px;">5 Rounds</div><div style="font-size:0.85rem;color:#d0d0d0;">1 question per round</div></div>
+        <div style="background:rgba(255,255,255,0.05);padding:15px;border-radius:10px;border-left:3px solid #e50914;"><div style="color:#e50914;font-weight:bold;font-size:0.9rem;margin-bottom:5px;">Earn Points</div><div style="font-size:0.85rem;color:#d0d0d0;">50–100 per question</div></div>
+        <div style="background:rgba(255,255,255,0.05);padding:15px;border-radius:10px;border-left:3px solid #e50914;"><div style="color:#e50914;font-weight:bold;font-size:0.9rem;margin-bottom:5px;">Momentum Bar</div><div style="font-size:0.85rem;color:#d0d0d0;">Track your performance</div></div>
+        <div style="background:rgba(255,255,255,0.05);padding:15px;border-radius:10px;border-left:3px solid #e50914;"><div style="color:#e50914;font-weight:bold;font-size:0.9rem;margin-bottom:5px;">High Scores</div><div style="font-size:0.85rem;color:#d0d0d0;">Beat your personal best</div></div>
+      </div>
+    </div>
+    <button id="rulesToggle" style="background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.3);color:white;padding:12px 25px;border-radius:10px;cursor:pointer;font-size:1rem;font-weight:bold;margin:20px 0;transition:all 0.3s ease;">📖 Show Full Rules</button>
+    <div id="rulesContent" style="overflow:hidden;transition:max-height 0.5s ease;text-align:left;">
+      <div style="background:rgba(255,255,255,0.05);padding:25px;border-radius:15px;margin:15px 0;border:2px solid rgba(229,9,20,0.3);">
+        <h3 style="color:#e50914;margin-bottom:15px;text-align:left;">Scoring System:</h3>
+        <ul style="list-style:none;padding-left:0;text-align:left;">
+          <li style="margin:10px 0;padding-left:20px;border-left:3px solid #2ecc71;">🟢 <strong>Easy:</strong> 50 points</li>
+          <li style="margin:10px 0;padding-left:20px;border-left:3px solid #ffd966;">🟡 <strong>Medium:</strong> 75 points</li>
+          <li style="margin:10px 0;padding-left:20px;border-left:3px solid #e74c3c;">🔴 <strong>Hard:</strong> 100 points</li>
+        </ul>
+        <h3 style="color:#e50914;margin:25px 0 15px 0;text-align:left;">Fight Rules:</h3>
+        <ul style="list-style:none;padding-left:0;text-align:left;">
+          <li style="margin:10px 0;">• 5 rounds, 1 question per round</li>
+          <li style="margin:10px 0;">• Momentum bar tracks your performance</li>
+          <li style="margin:10px 0;">• Read facts after each answer</li>
+          <li style="margin:10px 0;">• Final score determines your fight outcome</li>
+          <li style="margin:10px 0;">• Track your high score</li>
+          <li style="margin:10px 0;">• New questions every Monday, Wednesday, and Saturday!</li>
+        </ul>
+        <h3 style="color:#e50914;margin:25px 0 15px 0;text-align:left;">Fight Outcomes:</h3>
+        <ul style="list-style:none;padding-left:0;text-align:left;">
+          <li style="margin:10px 0;">• <strong>350+ points:</strong> Knockout Victory 💥</li>
+          <li style="margin:10px 0;">• <strong>300 points:</strong> Submission Victory 💪</li>
+          <li style="margin:10px 0;">• <strong>225–275:</strong> Unanimous Decision Victory 📝</li>
+          <li style="margin:10px 0;">• <strong>200 points:</strong> Split Decision Victory</li>
+          <li style="margin:10px 0;">• <strong>175 points:</strong> Draw 🤝</li>
+          <li style="margin:10px 0;">• <strong>Below 175:</strong> Various losses</li>
+        </ul>
+      </div>
+    </div>
+    <button id="welcomeStartBtn" style="background:linear-gradient(135deg,#e50914,#c00813);color:white;border:none;padding:20px 50px;font-size:1.4rem;border-radius:35px;cursor:pointer;font-weight:bold;margin-top:25px;box-shadow:0 8px 25px rgba(0,0,0,0.5);transition:all 0.3s ease;">START FIGHT 🥊</button>
+  </div>
+
+  <!-- Cage wrapper — panels around the octagon -->
+  <div id="cage-wrapper" style="display:none;flex-direction:column;align-items:center;width:100%;max-width:1100px;gap:6px;">
+
+    <!-- Top panels (2 sponsor slots) -->
+    <div style="display:flex;gap:6px;width:100%;justify-content:center;">
+      <div class="cage-panel sponsor-panel">
+        <span class="cage-panel-label">Advertise Here</span>
+        <a href="mailto:kholmstrom13@gmail.com" class="cage-panel-link">Contact Us</a>
+      </div>
+      <div class="cage-panel sponsor-panel">
+        <span class="cage-panel-label">Advertise Here</span>
+        <a href="mailto:kholmstrom13@gmail.com" class="cage-panel-link">Contact Us</a>
+      </div>
+    </div>
+
+    <!-- Middle row — side panels + octagon -->
+    <div style="display:flex;gap:6px;align-items:center;width:100%;">
+
+      <!-- Left panels (1 AdSense, 1 sponsor) -->
+      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+        <div class="cage-panel cage-panel-side adsense-panel">
+          <ins class="adsbygoogle"
+            style="display:block;width:120px;height:150px;"
+            data-ad-client="ca-pub-3662032261764585"
+            data-ad-slot="auto"
+            data-ad-format="auto"></ins>
+        </div>
+        <div class="cage-panel cage-panel-side sponsor-panel">
+          <span class="cage-panel-label">Advertise Here</span>
+          <a href="mailto:kholmstrom13@gmail.com" class="cage-panel-link">Contact Us</a>
+        </div>
+      </div>
+
+      <!-- Game Container -->
+      <div id="gameContainer" class="octagon relative w-full max-w-5xl h-[90vh] max-h-[820px] bg-gray-900 border-8 border-ufc-muted p-4 sm:p-6 flex flex-col items-center justify-start gap-2 transition-all duration-300" style="flex:1;display:flex;">
+    <header class="w-full flex items-center justify-center relative px-4 mb-0">
+      <h1 id="title" class="font-bold tracking-wide text-center" style="display:flex;align-items:center;justify-content:center;gap:10px;">
+        <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+          <rect x="16" y="42" width="32" height="14" rx="5" fill="#b00710"/>
+          <rect x="16" y="48" width="32" height="3" rx="1.5" fill="#880008" opacity="0.6"/>
+          <rect x="14" y="22" width="36" height="24" rx="10" fill="#e50914"/>
+          <rect x="14" y="18" width="36" height="12" rx="6" fill="#ff2a2a"/>
+          <rect x="24" y="18" width="2" height="10" rx="1" fill="#c00810"/>
+          <rect x="34" y="18" width="2" height="10" rx="1" fill="#c00810"/>
+          <ellipse cx="14" cy="28" rx="5" ry="8" fill="#cc0812" transform="rotate(-10 14 28)"/>
+          <ellipse cx="32" cy="26" rx="8" ry="4" fill="white" opacity="0.07"/>
+        </svg>
+        FIGHT TRIVIA
+        <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;transform:scaleX(-1);">
+          <rect x="16" y="42" width="32" height="14" rx="5" fill="#0a3d8f"/>
+          <rect x="16" y="48" width="32" height="3" rx="1.5" fill="#072d6b" opacity="0.6"/>
+          <rect x="14" y="22" width="36" height="24" rx="10" fill="#1565c0"/>
+          <rect x="14" y="18" width="36" height="12" rx="6" fill="#1976d2"/>
+          <rect x="24" y="18" width="2" height="10" rx="1" fill="#0a3d8f"/>
+          <rect x="34" y="18" width="2" height="10" rx="1" fill="#0a3d8f"/>
+          <ellipse cx="14" cy="28" rx="5" ry="8" fill="#1255a8" transform="rotate(-10 14 28)"/>
+          <ellipse cx="32" cy="26" rx="8" ry="4" fill="white" opacity="0.07"/>
+        </svg>
+      </h1>
+      <div id="round-label" class="text-sm opacity-90 absolute right-4"></div>
+    </header>
+
+    <div id="spinner-wrap" class="w-full flex flex-col items-center justify-center mt-2">
+      <div id="spinner" class="spinner w-24 h-24 border-8 border-ufc-muted border-t-ufc-red rounded"></div>
+      <div id="loading-text" class="text-center mt-2 font-semibold opacity-95">Preparing the arena...</div>
+    </div>
+
+    <!-- HUD -->
+    <div class="w-full flex flex-col gap-1 mt-0 items-center hidden" id="hud">
+      <div class="w-3/4 flex justify-end mb-1">
+        <button id="sound-toggle" class="text-base bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors px-2 py-1 border border-gray-600 text-sm" aria-label="Toggle sound">🔊</button>
+      </div>
+      <div class="w-3/4 bg-gray-900 border-2 border-ufc-muted rounded-xl p-1">
+        <div class="h-5 bg-gradient-to-r from-ufc-gold to-ufc-good rounded-lg transition-all duration-500" id="momentum-bar" style="width:50%"></div>
+      </div>
+      <div class="w-3/4 flex justify-between text-sm mt-1">
+        <div id="score-label">Score: 0</div>
+        <div id="high-score-display" class="opacity-80"></div>
+      </div>
+    </div>
+
+    <div class="flex gap-3 justify-center hidden" id="start-controls">
+      <button id="start-btn" class="bg-ufc-red text-white px-6 py-3 rounded-xl font-medium text-lg shadow-lg hover:bg-red-700 transition-all active:scale-95">Start Fight</button>
+    </div>
+
+    <!-- Game Area -->
+    <div class="w-full flex flex-col items-center gap-2 flex-1 justify-center hidden" id="game">
+      <h2 id="question" class="text-2xl text-white text-center px-5 opacity-0 translate-y-1.5">—</h2>
+      <input id="answer" type="text" list="suggestions" placeholder="Type your answer..." autocomplete="off"
+             class="w-3/4 px-4 py-3 rounded-lg border-2 border-ufc-muted bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-ufc-red focus:border-transparent">
+      <datalist id="suggestions"></datalist>
+      <div class="flex gap-3 items-center">
+        <button id="submit-btn" class="bg-gray-600 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg transition-all" disabled>Submit</button>
+        <button id="next-btn" class="bg-ufc-red text-white px-5 py-2.5 rounded-lg font-medium shadow-lg transition-all hover:bg-red-700 hidden">Next Question</button>
+      </div>
+      <div id="result" class="text-sm opacity-90 w-3/4" style="line-height:1.6;"></div>
+      <div id="round-info" class="text-sm opacity-90"></div>
+    </div>
+    <div id="overlay" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 min-w-[320px] bg-gray-900/90 border-4 border-ufc-red rounded-xl p-6 text-center z-30 text-white hidden">
+      <div id="overlay-content"></div>
+    </div>
+  </div> <!-- end gameContainer -->
+
+      <!-- Right panels (1 sponsor, 1 AdSense) -->
+      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+        <div class="cage-panel cage-panel-side sponsor-panel">
+          <span class="cage-panel-label">Advertise Here</span>
+          <a href="mailto:kholmstrom13@gmail.com" class="cage-panel-link">Contact Us</a>
+        </div>
+        <div class="cage-panel cage-panel-side adsense-panel">
+          <ins class="adsbygoogle"
+            style="display:block;width:120px;height:150px;"
+            data-ad-client="ca-pub-3662032261764585"
+            data-ad-slot="auto"
+            data-ad-format="auto"></ins>
+        </div>
+      </div>
+
+    </div> <!-- end middle row -->
+
+    <!-- Bottom panels (1 AdSense, 1 sponsor) -->
+    <div style="display:flex;gap:6px;width:100%;justify-content:center;">
+      <div class="cage-panel adsense-panel" style="flex:1;max-width:340px;height:80px;">
+        <ins class="adsbygoogle"
+          style="display:block;width:100%;height:80px;"
+          data-ad-client="ca-pub-3662032261764585"
+          data-ad-slot="auto"
+          data-ad-format="auto"></ins>
+      </div>
+      <div class="cage-panel adsense-panel" style="flex:1;max-width:340px;height:80px;">
+        <ins class="adsbygoogle"
+          style="display:block;width:100%;height:80px;"
+          data-ad-client="ca-pub-3662032261764585"
+          data-ad-slot="auto"
+          data-ad-format="auto"></ins>
+      </div>
+    </div>
+
+  </div> <!-- end cage-wrapper -->
+
+  <!-- Audio -->
+  <audio id="sound-bell"       preload="auto" src="https://www.dropbox.com/scl/fi/ec6qrb2jdfa0a7ho59tfm/Boxing-Bell-Sound-FX.mp3?rlkey=b5g1sdpdug4w34spisa2lvq8z&st=hn9vt638&dl=1"></audio>
+  <audio id="sound-correct"    preload="auto" src="https://www.dropbox.com/scl/fi/9wzqhmmkaywz6jbslxy62/Audience-Clapping-Sound-Effects-no-copyright.mp3?rlkey=9lv2vc0cq0rrw591k62jfd2e0&st=clxvysre&dl=1"></audio>
+  <audio id="sound-wrong"      preload="auto" src="https://www.dropbox.com/scl/fi/7xcsbpedfdq5ija1khmx7/Boo-sound-effect.mp3?rlkey=3npvnddhe7fcqzalzu4d40hxd&st=x2sr92z6&dl=1"></audio>
+  <audio id="sound-end"        preload="auto" src="https://assets.mixkit.co/sfx/preview/mixkit-boxing-win-alarm-1760.mp3"></audio>
+  <audio id="audio-knockout"   preload="auto" src="https://www.dropbox.com/scl/fi/z6mbpl15nx65bvezq2su2/Winner-by-Knockout.mp3?rlkey=g876uklrrn83oe9xc06td4yye&st=tooxz95v&dl=1"></audio>
+  <audio id="audio-submission" preload="auto" src="https://www.dropbox.com/scl/fi/suegfmd0qievgxuleyzpd/Winner-by-Submission.mp3?rlkey=sljl6lr8inejzt1tjsomp1x3k&st=peqysehx&dl=1"></audio>
+  <audio id="audio-unanimous"  preload="auto" src="https://www.dropbox.com/scl/fi/0v7gi1sxo0fb8bbufjf19/Winner-by-Unanimous-Decision.mp3?rlkey=8gp5jg8j0jm8cpbb74z3mviw6&st=8axfrf6q&dl=1"></audio>
+  <audio id="audio-split"      preload="auto" src="https://www.dropbox.com/scl/fi/hk5z5tgtrup23eq9o4zm6/Winner-by-Split-Decision.mp3?rlkey=8rffht4y3oohdtj45k4jxplor&st=ehapwafi&dl=1"></audio>
+  <audio id="loser-KO"         preload="auto" src="https://www.dropbox.com/scl/fi/iimy74n8chtjumq15q6xj/Loser-by-Knockout.mp3?rlkey=9662aifjpm89i9nj4mmcrdmjd&st=giu1g5ni&dl=1"></audio>
+  <audio id="loser-Submission" preload="auto" src="https://www.dropbox.com/scl/fi/o6ynkuw9iumavdk334jt7/Loser-by-Split-Decision.mp3?rlkey=8e1pwyi2zce0mujl46jxyr3kp&st=wzvgxkfc&dl=1"></audio>
+  <audio id="loser-Unanimous"  preload="auto" src="https://www.dropbox.com/scl/fi/2u0ae9ajuz6w44ourj3fa/Loser-by-Unanimous-Decision.mp3?rlkey=l0j9dxp55o0bxr1kfypppdqr5&st=ij7o4roo&dl=1"></audio>
+  <audio id="loser-Split"      preload="auto" src="https://www.dropbox.com/scl/fi/o6ynkuw9iumavdk334jt7/Loser-by-Split-Decision.mp3?rlkey=8e1pwyi2zce0mujl46jxyr3kp&st=p18dcwcu&dl=1"></audio>
+  <audio id="draw"             preload="auto" src="https://www.dropbox.com/scl/fi/1mj6kslpi9tpxdrrpc0mv/Draw.mp3?rlkey=xk1badf8yclfc947m78gm8d77&st=p6cqx6gh&dl=1"></audio>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <script>
+    const SHEET_API_URL    = "https://script.google.com/macros/s/AKfycbz5LJB1rP5J-n7tQwSpiPdYOJoY3SCF3HRiRXa9n8DqndIdpfyjr6NQyB0eIV1FyN4Uvw/exec";
+    const FIGHTERS_CSV_URL = "https://raw.githubusercontent.com/KDog13k/fighters/refs/heads/main/fighters%202%20-%20fighters.csv";
+    const QUESTIONS_PER_ROUND = 5;
+    const MAX_SCORE_FOR_KO    = 350;
+
+    let questions=[], currentQuestionIndex=0, score=0, questionHistory=[];
+    let momentum=50, roundNumber=0, roundCorrectCount=0, roundScore=0, soundEnabled=true;
+
+    const spinner        = document.getElementById("spinner");
+    const loadingText    = document.getElementById("loading-text");
+    const roundLabel     = document.getElementById("round-label");
+    const startControls  = document.getElementById("start-controls");
+    const startBtn       = document.getElementById("start-btn");
+    const hud            = document.getElementById("hud");
+    const gameBox        = document.getElementById("game");
+    const questionEl     = document.getElementById("question");
+    const answerInput    = document.getElementById("answer");
+    const suggestions    = document.getElementById("suggestions");
+    const submitBtn      = document.getElementById("submit-btn");
+    const nextBtn        = document.getElementById("next-btn");
+    const resultEl       = document.getElementById("result");
+    const overlay        = document.getElementById("overlay");
+    const overlayContent = document.getElementById("overlay-content");
+    const momentumBar    = document.getElementById("momentum-bar");
+    const scoreLabel     = document.getElementById("score-label");
+    const soundToggle    = document.getElementById("sound-toggle");
+    const highScoreDisplay = document.getElementById("high-score-display");
+    const soundBell      = document.getElementById("sound-bell");
+    const soundCorrect   = document.getElementById("sound-correct");
+    const soundWrong     = document.getElementById("sound-wrong");
+    const soundEnd       = document.getElementById("sound-end");
+
+    function clamp(v,a=0,b=100){ return Math.max(a,Math.min(b,v)); }
+    function fadeInQuestion(){ questionEl.classList.remove('opacity-0','translate-y-1.5'); questionEl.classList.add('opacity-100'); }
+    function fadeOutQuestion(){ questionEl.classList.add('opacity-0','translate-y-1.5'); questionEl.classList.remove('opacity-100'); }
+    function playSound(el){ if(!soundEnabled) return; el.pause(); el.currentTime=0; el.play().catch(()=>{}); }
+
+    function getFightOutcome(t){
+      if(t<=0)    return "Knockout Loss";
+      if(t===50)  return "Submission Loss 🤼";
+      if(t<=125)  return "Unanimous Decision Loss 📋";
+      if(t===150) return "Split Decision Loss";
+      if(t===175) return "Draw 🤝";
+      if(t===200) return "Split Decision Victory";
+      if(t<=275)  return "Unanimous Decision Victory 📝";
+      if(t===300) return "Submission Victory 💪";
+      return "Knockout Victory 💥";
+    }
+
+    function flashStage(kind){
+      const s=document.getElementById("gameContainer");
+      s.classList.remove("flash-good","flash-bad"); void s.offsetWidth;
+      s.classList.add(kind==="good"?"flash-good":"flash-bad");
+      setTimeout(()=>s.classList.remove("flash-good","flash-bad"),500);
+    }
+
+    function updateHUD(){
+      scoreLabel.textContent=`Score: ${score}`;
+      momentumBar.style.width=`${clamp(momentum,0,100)}%`;
+    }
+
+    function populateDatalist(names){
+      suggestions.innerHTML="";
+      names.forEach(n=>{ const o=document.createElement("option"); o.value=n; suggestions.appendChild(o); });
+    }
+
+    function getHighScore(){ const s=localStorage.getItem('fightTriviaHighScore'); return s?parseInt(s,10):0; }
+    function saveHighScore(n){ const c=getHighScore(); if(n>c){ localStorage.setItem('fightTriviaHighScore',n.toString()); return true; } return false; }
+    function updateHighScoreDisplay(){ highScoreDisplay.textContent=`Best: ${getHighScore()}`; }
+    function hasPlayedThisSet(){ 
+      return localStorage.getItem('fightTriviaLastPlay') === getCurrentQuestionDate();
+    }
+    function markAsPlayed(){ 
+      localStorage.setItem('fightTriviaLastPlay', getCurrentQuestionDate()); 
+    }
+    function getCurrentQuestionDate(){ return questions.length > 0 ? questions[0].date : ''; }
+
+    soundToggle.addEventListener('click',()=>{
+      soundEnabled=!soundEnabled;
+      soundToggle.textContent=soundEnabled?'🔊':'🔇';
+    });
+
+    function loadQuestions(){
+      fetch(SHEET_API_URL)
+        .then(r => r.json())
+        .then(data => {
+          if(data.error) { showLoadError(data.error); return; }
+          if(!data.questions || data.questions.length === 0) { showLoadError("No questions found."); return; }
+          questions = data.questions;
+          onQuestionsLoaded();
+        })
+        .catch(err => showLoadError(err));
+    }
+
+    function loadFighterNames(){
+      Papa.parse(FIGHTERS_CSV_URL,{
+        download:true,header:true,skipEmptyLines:true,
+        complete:(r)=>{
+          const tc=s=>s.trim().replace(/\b\w/g,c=>c.toUpperCase());
+          const names=r.data.map(row=>row.Name).filter(Boolean);
+          const qans=questions.flatMap(q=>q.answers);
+          populateDatalist([...new Set([...names,...qans].map(tc))].sort());
+        },
+        error:()=>{
+          const tc=s=>s.trim().replace(/\b\w/g,c=>c.toUpperCase());
+          populateDatalist([...new Set(questions.flatMap(q=>q.answers).map(tc))].sort());
+        }
+      });
+    }
+
+    function showLoadError(err){
+      roundLabel.textContent="❌ Error loading questions.";
+      spinner.style.display="none";
+      loadingText.textContent="Unable to load questions. Please try again.";
+      loadingText.style.display="block";
+      console.error(err);
+    }
+
+    function onQuestionsLoaded(){
+      spinner.style.display="none"; loadingText.style.display="none";
+      if(!questions.length){ roundLabel.textContent="No valid questions found."; return; }
+      roundLabel.textContent="";
+      loadFighterNames(); updateHUD(); updateHighScoreDisplay();
+    }
+
+    function startFight(){
+      if(!questions.length){ alert("Questions still loading, please wait."); return; }
+      try{ if(hasPlayedThisSet()){ alert("You've already played this week's game! Come back Monday, Wednesday, or Saturday for new questions."); return; } }catch(e){}
+      document.getElementById('welcomeScreen').style.display='none';
+      document.getElementById('cage-wrapper').style.display='flex';
+      // init AdSense panels
+      try{ 
+        const ads = document.querySelectorAll('.adsbygoogle');
+        ads.forEach(() => (adsbygoogle=window.adsbygoogle||[]).push({}));
+      }catch(e){}
+      startControls.classList.add('hidden');
+      gameBox.classList.remove("hidden");
+      currentQuestionIndex=0; score=0; questionHistory=[];
+      momentum=50; roundNumber=1; roundCorrectCount=0; roundScore=0;
+      hud.classList.remove("hidden"); updateHUD(); playSound(soundBell); showQuestion();
+    }
+
+    function showQuestion(){
+      if(currentQuestionIndex>=questions.length){ endFight(); return; }
+      const q=questions[currentQuestionIndex];
+      fadeOutQuestion();
+      questionEl.textContent=q.question;
+      resultEl.textContent=""; answerInput.value=""; answerInput.disabled=false;
+      submitBtn.disabled=true;
+      submitBtn.classList.remove('bg-ufc-red','hover:bg-red-700','active:scale-95');
+      submitBtn.classList.add('bg-gray-600');
+      nextBtn.classList.add('hidden');
+      setTimeout(()=>{ fadeInQuestion(); answerInput.focus(); },180);
+      roundLabel.textContent=`Round ${roundNumber}`;
+      const tot=Math.min(QUESTIONS_PER_ROUND,questions.length-(roundNumber-1)*QUESTIONS_PER_ROUND);
+      const rp=(currentQuestionIndex%QUESTIONS_PER_ROUND)+1;
+      document.getElementById("round-info").textContent=`Question ${rp} of ${tot} this round`;
+      updateHUD();
+    }
+
+    function handleSubmit(){
+      const q=questions[currentQuestionIndex];
+      const toTitleCase = s => s.trim().replace(/\b\w/g, c => c.toUpperCase());
+      const user=(answerInput.value||"").trim().toLowerCase();
+      const displayAnswer = toTitleCase(answerInput.value||"");
+      answerInput.disabled=true; submitBtn.disabled=true;
+      let pts=0;
+      if(q.difficulty==="Easy") pts=50; else if(q.difficulty==="Medium") pts=75; else pts=100;
+      const matched=q.answers.some(a=>a===user);
+      questionHistory.push({ question:q.question, userAnswer:displayAnswer, correctAnswer:toTitleCase(q.answers[0]||""), correct:matched, points:matched?pts:0, maxPoints:pts, difficulty:q.difficulty, fact:q.fact });
+      if(matched){
+        score+=pts; roundScore+=pts; roundCorrectCount++;
+        momentum=clamp(momentum+(pts/MAX_SCORE_FOR_KO*100));
+        resultEl.innerHTML=`✅ Correct! +${pts} points${q.fact?`<br><span class="text-sm opacity-75 mt-1 block">${q.fact}</span>`:''}`;
+        playSound(soundCorrect); flashStage("good");
+        questionEl.animate([{transform:"scale(1)"},{transform:"scale(1.02)"},{transform:"scale(1)"}],{duration:300});
+      } else {
+        momentum=clamp(momentum-(pts/MAX_SCORE_FOR_KO*100));
+        const displayCorrect = (q.answers[0]||"N/A").trim().replace(/\b\w/g, c => c.toUpperCase());
+        resultEl.innerHTML=`❌ Incorrect — answer: ${displayCorrect}${q.fact?`<br><span class="text-sm opacity-75 mt-1 block">${q.fact}</span>`:''}`;
+        playSound(soundWrong); flashStage("bad");
+        questionEl.animate([{transform:"scale(1)"},{transform:"scale(.98)"},{transform:"scale(1)"}],{duration:300});
+      }
+      updateHUD();
+      submitBtn.classList.add('hidden'); nextBtn.classList.remove('hidden'); nextBtn.focus();
+    }
+
+    function stopFeedbackSounds(){ [soundCorrect,soundWrong].forEach(a=>{ a.pause(); a.currentTime=0; }); }
+
+    function handleNext(){
+      stopFeedbackSounds();
+      const eor=((currentQuestionIndex+1)%QUESTIONS_PER_ROUND===0)||(currentQuestionIndex+1===questions.length);
+      nextBtn.classList.add('hidden'); submitBtn.classList.remove('hidden');
+      if(eor) showRoundSummary(); else { currentQuestionIndex++; showQuestion(); }
+    }
+
+    function showRoundSummary(){
+      const si=Math.max(0,currentQuestionIndex-(currentQuestionIndex%QUESTIONS_PER_ROUND));
+      const ei=Math.min(questions.length-1,si+QUESTIONS_PER_ROUND-1);
+      overlayContent.innerHTML=`
+        <div class="flex flex-col items-center gap-2">
+          <div class="text-xl font-extrabold">Round ${roundNumber} Complete</div>
+          <div class="text-3xl font-black">${roundScore} pts</div>
+          <div class="opacity-90">Correct this round: ${roundCorrectCount} / ${ei-si+1}</div>
+          <div class="mt-2"><button id="continue-btn" class="bg-ufc-red text-white px-4 py-2 rounded-lg border-none hover:bg-red-700 transition-all">Continue</button></div>
+        </div>`;
+      overlay.classList.add("pop-in"); overlay.classList.remove("hidden");
+      const cb=document.getElementById("continue-btn"); cb.focus();
+      cb.addEventListener("click",()=>{
+        overlay.classList.add("hidden"); overlay.classList.remove("pop-in");
+        roundNumber++; roundCorrectCount=0; roundScore=0; currentQuestionIndex++;
+        showQuestion();
+      });
+    }
+
+    function endFight(){
+      const outcomeText=getFightOutcome(score);
+      const isNew=saveHighScore(score);
+      updateHighScoreDisplay(); markAsPlayed(); stopFeedbackSounds();
+      setTimeout(()=>{
+        if(outcomeText.includes("Draw")) playSound(document.getElementById('draw'));
+        else if(outcomeText.includes("Victory")){
+          if(outcomeText.includes("Knockout"))    playSound(document.getElementById('audio-knockout'));
+          else if(outcomeText.includes("Submission")) playSound(document.getElementById('audio-submission'));
+          else if(outcomeText.includes("Unanimous"))  playSound(document.getElementById('audio-unanimous'));
+          else playSound(document.getElementById('audio-split'));
+        } else {
+          if(outcomeText.includes("Knockout"))    playSound(document.getElementById('loser-KO'));
+          else if(outcomeText.includes("Submission")) playSound(document.getElementById('loser-Submission'));
+          else if(outcomeText.includes("Unanimous"))  playSound(document.getElementById('loser-Unanimous'));
+          else playSound(document.getElementById('loser-Split'));
+        }
+      },300);
+
+      gameBox.classList.add("hidden"); hud.classList.add("hidden"); startControls.classList.add("hidden");
+
+      const emojiGrid=questionHistory.map(h=>h.correct?'🟩':'🟥').join('');
+      const today=new Date();
+      const dateStr=today.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+      const reviewRows=questionHistory.map((h,i)=>`
+        <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:12px;margin-bottom:8px;border-left:4px solid ${h.correct?'#2ecc71':'#e74c3c'};">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+            <div style="flex:1;">
+              <div style="font-size:0.75rem;color:#aaa;margin-bottom:4px;">Q${i+1} &middot; ${h.difficulty} &middot; ${h.correct?'+'+h.maxPoints+' pts':'0 pts'}</div>
+              <div style="font-size:0.9rem;font-weight:600;margin-bottom:6px;">${h.question}</div>
+              ${h.correct
+                ?`<div style="color:#2ecc71;font-size:0.85rem;">&#10003; ${h.userAnswer||h.correctAnswer}</div>`
+                :`<div style="color:#e74c3c;font-size:0.85rem;">&#10007; You said: ${h.userAnswer||'(no answer)'}</div><div style="color:#aaa;font-size:0.85rem;">&#10003; ${h.correctAnswer}</div>`}
+              ${h.fact?`<div style="color:#999;font-size:0.75rem;margin-top:6px;font-style:italic;">${h.fact}</div>`:''}
+            </div>
+            <button onclick="openFlagModal(${i})" style="background:rgba(255,255,255,0.06);border:1px solid #333;color:#666;border-radius:6px;padding:4px 8px;font-size:10px;cursor:pointer;flex-shrink:0;margin-top:2px;letter-spacing:1px;">&#128681; FLAG</button>
+          </div>
+        </div>`).join('');
+
+      overlayContent.innerHTML=`
+        <div class="flex flex-col items-center gap-2" style="width:100%;max-width:420px;margin:0 auto;">
+          <div class="text-xl font-black">Fight Over</div>
+          <div class="text-3xl font-extrabold">${score} pts</div>
+          ${isNew?'<div style="color:#f0c040;font-weight:bold;">🏆 NEW HIGH SCORE! 🏆</div>':''}
+          <div class="opacity-90">${outcomeText}</div>
+          <div style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:16px;width:100%;text-align:center;margin-top:8px;">
+            <div style="font-weight:800;font-size:1rem;letter-spacing:1px;">🥊 THE OCTAGON CHALLENGE</div>
+            <div style="font-size:0.8rem;color:#aaa;margin:2px 0;">${dateStr}</div>
+            <div style="font-size:1.6rem;letter-spacing:4px;margin:8px 0;">${emojiGrid}</div>
+            <div style="font-size:0.9rem;font-weight:600;">${score}/350 &mdash; ${outcomeText.replace(/[\u{1F4A5}\u{1F4AA}\u{1F4DD}\u{1F91D}\u{1F4CB}\u{1F97C}]/gu,'').trim()}</div>
+          </div>
+          <button id="share-btn" style="background:#e50914;color:white;border:none;padding:10px 24px;border-radius:8px;font-weight:bold;cursor:pointer;font-size:0.9rem;margin-top:4px;width:100%;">📋 Copy Score to Share</button>
+          <div id="share-confirm" style="color:#2ecc71;font-size:0.8rem;min-height:1rem;"></div>
+          <button id="review-toggle-btn" style="background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.3);padding:10px 24px;border-radius:8px;font-weight:bold;cursor:pointer;font-size:0.9rem;width:100%;">📄 Review All Questions</button>
+          <div id="review-section" style="display:none;width:100%;max-height:380px;overflow-y:auto;text-align:left;margin-top:4px;padding-right:4px;">${reviewRows}</div>
+          <div class="mt-3 text-sm opacity-75">Come back Monday, Wednesday, or Saturday for another fight!</div>
+        </div>`;
+      overlay.classList.add("pop-in"); overlay.classList.remove("hidden");
+
+      document.getElementById('share-btn').addEventListener('click',function(){
+        const clean=outcomeText.replace(/[\u{1F4A5}\u{1F4AA}\u{1F4DD}\u{1F91D}\u{1F4CB}\u{1F97C}]/gu,'').trim();
+        const txt=`🥊 Fight Trivia — ${dateStr}\n${emojiGrid}\n${score}/350 — ${clean}`;
+        navigator.clipboard.writeText(txt)
+          .then(()=>{ document.getElementById('share-confirm').textContent='✅ Copied to clipboard!'; setTimeout(()=>{document.getElementById('share-confirm').textContent='';},3000); })
+          .catch(()=>{ document.getElementById('share-confirm').textContent='Copy failed — try manually.'; });
+      });
+
+      document.getElementById('review-toggle-btn').addEventListener('click',function(){
+        const s=document.getElementById('review-section');
+        if(s.style.display==='none'){ s.style.display='block'; this.textContent='▲ Hide Review'; }
+        else{ s.style.display='none'; this.textContent='📄 Review All Questions'; }
+      });
+    }
+
+    startBtn.addEventListener("click",startFight);
+    submitBtn.addEventListener("click",handleSubmit);
+    nextBtn.addEventListener("click",handleNext);
+    answerInput.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); handleSubmit(); } });
+    answerInput.addEventListener('input',function(){
+      if(this.value.trim().length>0){ submitBtn.disabled=false; submitBtn.classList.add('bg-ufc-red','hover:bg-red-700','active:scale-95'); submitBtn.classList.remove('bg-gray-600'); }
+      else{ submitBtn.disabled=true; submitBtn.classList.remove('bg-ufc-red','hover:bg-red-700','active:scale-95'); submitBtn.classList.add('bg-gray-600'); }
+    });
+
+    // Flag Modal
+    const FORMSPREE_URL='https://formspree.io/f/mzdyvlpp';
+    function openFlagModal(idx){
+      const h=questionHistory[idx]; if(!h) return;
+      const b=document.createElement('div');
+      b.className='flag-modal-backdrop'; b.id='flag-backdrop';
+      b.innerHTML=`<div class="flag-modal"><h3>🚩 Flag This Question</h3><div class="flag-q-preview">"${h.question}"</div><textarea id="flag-message" placeholder="What's wrong? (e.g. incorrect answer, wrong event, bad fact...)"></textarea><div class="flag-modal-btns"><button class="flag-cancel" onclick="closeFlagModal()">Cancel</button><button class="flag-send" onclick="submitFlag(${idx})">Send Feedback</button></div><div id="flag-status" style="font-size:12px;color:#2ecc71;margin-top:8px;min-height:16px;text-align:center;"></div></div>`;
+      document.body.appendChild(b);
+      b.addEventListener('click',e=>{ if(e.target===b) closeFlagModal(); });
+      setTimeout(()=>{ const m=document.getElementById('flag-message'); if(m) m.focus(); },100);
+    }
+    function closeFlagModal(){ const b=document.getElementById('flag-backdrop'); if(b) b.remove(); }
+    async function submitFlag(idx){
+      const h=questionHistory[idx];
+      const msg=(document.getElementById('flag-message').value||'').trim();
+      const st=document.getElementById('flag-status');
+      if(!msg){ st.textContent='Please describe the issue first.'; st.style.color='#ff4455'; return; }
+      const sb=document.querySelector('.flag-send'); sb.textContent='Sending...'; sb.disabled=true;
+      try{
+        const res=await fetch(FORMSPREE_URL,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({question:h.question,correct_answer:h.correctAnswer,user_answer:h.userAnswer,difficulty:h.difficulty,feedback:msg,date:new Date().toLocaleDateString()})});
+        if(res.ok){ st.textContent="✅ Thanks! We'll look into it."; sb.textContent='Sent!'; setTimeout(()=>closeFlagModal(),1500); }
+        else throw new Error();
+      }catch(e){ st.textContent='Something went wrong. Try again.'; st.style.color='#ff4455'; sb.textContent='Send Feedback'; sb.disabled=false; }
+    }
+
+    loadQuestions(); updateHUD();
+    document.querySelectorAll('audio').forEach(a=>{ a.volume=0.5; });
+
+    document.getElementById('welcomeStartBtn').addEventListener('click',function(){
+      if(!questions.length){
+        this.textContent='⏳ Loading questions...'; this.disabled=true;
+        const c=setInterval(()=>{ if(questions.length){ clearInterval(c); this.textContent='START FIGHT 🥊'; this.disabled=false; startFight(); } },500);
+        return;
+      }
+      startFight();
+    });
+
+    document.getElementById('rulesToggle').addEventListener('click',function(){
+      const rc=document.getElementById('rulesContent');
+      if(rc.classList.contains('open')){ rc.classList.remove('open'); this.textContent='📖 Show Full Rules'; }
+      else{ rc.classList.add('open'); this.textContent='📖 Hide Rules'; }
+    });
+  </script>
+</body>
+</html>
