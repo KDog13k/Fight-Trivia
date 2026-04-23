@@ -201,13 +201,15 @@
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        min-height: 80px;
+        height: 50px;
+        min-height: unset;
         flex: 1;
       }
       .cage-panel-side {
-        width: 120px;
-        min-height: 150px;
+        width: 20px;
+        min-height: unset;
         flex: none;
+        overflow: hidden;
       }
       .sponsor-panel {
         border: 1px dashed rgba(255,255,255,0.12);
@@ -237,6 +239,133 @@
       .flag-cancel { background:transparent;border:1px solid #444;color:#aaa;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px; }
       .flag-send   { background:var(--ufc-red);border:none;color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700; }
       .flag-q-preview { font-size:12px;color:#666;margin-bottom:10px;font-style:italic;line-height:1.4; }
+
+      /* ── MOBILE OPTIMIZATIONS ── */
+      @media (max-width: 640px) {
+
+        /* Hide side ad panels on mobile — they squeeze the octagon */
+        .cage-panel-side { display: none !important; }
+
+        /* Switch middle row from 3-col grid to single column */
+        #cage-middle-grid {
+          display: block !important;
+        }
+
+        /* Welcome screen */
+        .welcome-screen {
+          padding: 28px 20px !important;
+          border-radius: 16px !important;
+        }
+        .welcome-screen h1 {
+          font-size: 2.4rem !important;
+        }
+        .welcome-screen h1 svg {
+          width: 32px !important;
+          height: 32px !important;
+        }
+
+        /* Game container — full width, auto height, no clip on mobile */
+        #gameContainer {
+          clip-path: none !important;
+          border-radius: 16px !important;
+          height: auto !important;
+          min-height: 88vh !important;
+          max-height: none !important;
+          padding: 16px 12px !important;
+          border-width: 4px !important;
+        }
+
+        /* Title */
+        #title {
+          font-size: 1.5rem !important;
+          letter-spacing: 3px !important;
+        }
+        #title svg { width: 22px !important; height: 22px !important; }
+
+        /* Round label — smaller, fits next to title */
+        #round-label { font-size: 0.85rem !important; }
+
+        /* Question card — full width on mobile */
+        #question {
+          width: 94% !important;
+          font-size: 1.05rem !important;
+          padding: 14px 16px !important;
+        }
+
+        /* Answer input — full width, larger tap target */
+        #answer {
+          width: 94% !important;
+          font-size: 1rem !important;
+          padding: 14px 16px !important;
+          min-height: 48px !important;
+        }
+
+        /* Submit / Next buttons — bigger tap targets */
+        #submit-btn, #next-btn {
+          padding: 14px 28px !important;
+          font-size: 1rem !important;
+          min-height: 48px !important;
+        }
+
+        /* Result text — full width */
+        #result {
+          width: 94% !important;
+          font-size: 0.9rem !important;
+        }
+
+        /* HUD bars — full width */
+        #hud .w-3\/4 { width: 94% !important; }
+
+        /* Sound toggle — bigger tap target */
+        #sound-toggle {
+          padding: 8px 12px !important;
+          font-size: 1rem !important;
+        }
+
+        /* Overlay — nearly full width */
+        #overlay {
+          min-width: unset !important;
+          width: 92% !important;
+          padding: 20px 16px !important;
+          left: 50% !important;
+          top: 50% !important;
+        }
+
+        /* Round summary continue button */
+        #overlay button {
+          min-height: 44px !important;
+          font-size: 1rem !important;
+        }
+
+        /* Top/bottom ad panels — slimmer on mobile */
+        .cage-panel { height: 36px !important; }
+
+        /* End screen review section — better height on mobile */
+        #review-section { max-height: 280px !important; }
+
+        /* Share/review buttons in end screen */
+        #share-btn, #review-toggle-btn {
+          min-height: 48px !important;
+          font-size: 0.95rem !important;
+        }
+
+        /* Start fight button on welcome screen */
+        #welcomeStartBtn {
+          padding: 16px 36px !important;
+          font-size: 1.2rem !important;
+          width: 100% !important;
+        }
+
+        /* Rules toggle button */
+        #rulesToggle {
+          width: 100% !important;
+        }
+
+        /* How it works grid — stack on mobile */
+        .welcome-how-it-works {
+          grid-template-columns: 1fr 1fr !important;
+        }
+      }
     </style>
 </head>
 <body class="bg-black min-h-screen flex items-center justify-center p-4 text-white">
@@ -270,7 +399,7 @@
     <p style="font-size:0.95rem;color:#a0a0a0;margin-bottom:30px;font-style:italic;">New fights every Monday, Wednesday &amp; Saturday.</p>
     <div style="background:rgba(229,9,20,0.15);border:2px solid #e50914;border-radius:15px;padding:20px;margin:25px 0;">
       <p style="color:#fff;font-weight:bold;margin-bottom:15px;">HOW IT WORKS</p>
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-top:15px;">
+      <div class="welcome-how-it-works" style="display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-top:15px;">
         <div style="background:rgba(255,255,255,0.05);padding:15px;border-radius:10px;border-left:3px solid #e50914;"><div style="color:#e50914;font-weight:bold;font-size:0.9rem;margin-bottom:5px;">5 Rounds</div><div style="font-size:0.85rem;color:#d0d0d0;">1 question per round</div></div>
         <div style="background:rgba(255,255,255,0.05);padding:15px;border-radius:10px;border-left:3px solid #e50914;"><div style="color:#e50914;font-weight:bold;font-size:0.9rem;margin-bottom:5px;">Earn Points</div><div style="font-size:0.85rem;color:#d0d0d0;">50–100 per question</div></div>
         <div style="background:rgba(255,255,255,0.05);padding:15px;border-radius:10px;border-left:3px solid #e50914;"><div style="color:#e50914;font-weight:bold;font-size:0.9rem;margin-bottom:5px;">Momentum Bar</div><div style="font-size:0.85rem;color:#d0d0d0;">Track your performance</div></div>
@@ -310,40 +439,35 @@
   </div>
 
   <!-- Cage wrapper — panels around the octagon -->
-  <div id="cage-wrapper" style="display:none;flex-direction:column;align-items:center;width:100%;max-width:1100px;gap:6px;">
+  <div id="cage-wrapper" style="display:none;flex-direction:column;align-items:center;width:100%;max-width:960px;gap:4px;">
 
-    <!-- Top panels (2 sponsor slots) -->
-    <div style="display:flex;gap:6px;width:100%;justify-content:center;">
-      <div class="cage-panel sponsor-panel">
+    <!-- Top panels -->
+    <div style="display:flex;gap:4px;width:100%;">
+      <div class="cage-panel sponsor-panel" style="height:28px;flex:1;">
         <span class="cage-panel-label">Advertise Here</span>
         <a href="mailto:kholmstrom13@gmail.com" class="cage-panel-link">Contact Us</a>
       </div>
-      <div class="cage-panel sponsor-panel">
+      <div class="cage-panel sponsor-panel" style="height:28px;flex:1;">
         <span class="cage-panel-label">Advertise Here</span>
         <a href="mailto:kholmstrom13@gmail.com" class="cage-panel-link">Contact Us</a>
       </div>
     </div>
 
-    <!-- Middle row — side panels + octagon -->
-    <div style="display:flex;gap:6px;align-items:center;width:100%;">
+    <!-- Middle row using CSS grid — side panels don't affect octagon height -->
+    <div id="cage-middle-grid" style="display:grid;grid-template-columns:20px 1fr 20px;gap:4px;width:100%;align-items:start;">
 
-      <!-- Left panels (1 AdSense, 1 sponsor) -->
-      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
-        <div class="cage-panel cage-panel-side adsense-panel">
-          <ins class="adsbygoogle"
-            style="display:block;width:120px;height:150px;"
-            data-ad-client="ca-pub-3662032261764585"
-            data-ad-slot="auto"
-            data-ad-format="auto"></ins>
+      <!-- Left panel -->
+      <div class="cage-panel-side" style="display:flex;flex-direction:column;gap:4px;">
+        <div class="cage-panel adsense-panel" style="height:150px;width:20px;">
+          <span style="font-size:7px;color:#2a2a2a;writing-mode:vertical-rl;">Ad</span>
         </div>
-        <div class="cage-panel cage-panel-side sponsor-panel">
-          <span class="cage-panel-label">Advertise Here</span>
-          <a href="mailto:kholmstrom13@gmail.com" class="cage-panel-link">Contact Us</a>
+        <div class="cage-panel sponsor-panel" style="height:100px;width:20px;">
+          <span style="font-size:7px;color:#333;writing-mode:vertical-rl;">Ad</span>
         </div>
       </div>
 
       <!-- Game Container -->
-      <div id="gameContainer" class="octagon relative w-full max-w-5xl h-[90vh] max-h-[820px] bg-gray-900 border-8 border-ufc-muted p-4 sm:p-6 flex flex-col items-center justify-start gap-2 transition-all duration-300" style="flex:1;display:flex;">
+      <div id="gameContainer" class="octagon relative w-full max-w-4xl h-[90vh] max-h-[820px] bg-gray-900 border-8 border-ufc-muted p-4 sm:p-6 flex flex-col items-center justify-start gap-2 transition-all duration-300" style="display:flex;">
     <header class="w-full flex items-center justify-center relative px-4 mb-0">
       <h1 id="title" class="font-bold tracking-wide text-center" style="display:flex;align-items:center;justify-content:center;gap:10px;">
         <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
@@ -412,38 +536,25 @@
     </div>
   </div> <!-- end gameContainer -->
 
-      <!-- Right panels (1 sponsor, 1 AdSense) -->
-      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
-        <div class="cage-panel cage-panel-side sponsor-panel">
-          <span class="cage-panel-label">Advertise Here</span>
-          <a href="mailto:kholmstrom13@gmail.com" class="cage-panel-link">Contact Us</a>
+      <!-- Right panel -->
+      <div class="cage-panel-side" style="display:flex;flex-direction:column;gap:4px;">
+        <div class="cage-panel sponsor-panel" style="height:100px;width:20px;">
+          <span style="font-size:7px;color:#333;writing-mode:vertical-rl;">Ad</span>
         </div>
-        <div class="cage-panel cage-panel-side adsense-panel">
-          <ins class="adsbygoogle"
-            style="display:block;width:120px;height:150px;"
-            data-ad-client="ca-pub-3662032261764585"
-            data-ad-slot="auto"
-            data-ad-format="auto"></ins>
+        <div class="cage-panel adsense-panel" style="height:150px;width:20px;">
+          <span style="font-size:7px;color:#2a2a2a;writing-mode:vertical-rl;">Ad</span>
         </div>
       </div>
 
-    </div> <!-- end middle row -->
+    </div> <!-- end middle grid -->
 
-    <!-- Bottom panels (1 AdSense, 1 sponsor) -->
-    <div style="display:flex;gap:6px;width:100%;justify-content:center;">
-      <div class="cage-panel adsense-panel" style="flex:1;max-width:340px;height:80px;">
-        <ins class="adsbygoogle"
-          style="display:block;width:100%;height:80px;"
-          data-ad-client="ca-pub-3662032261764585"
-          data-ad-slot="auto"
-          data-ad-format="auto"></ins>
+    <!-- Bottom panels -->
+    <div style="display:flex;gap:4px;width:100%;">
+      <div class="cage-panel adsense-panel" style="flex:1;height:40px;">
+        <!-- AdSense unit goes here when approved -->
       </div>
-      <div class="cage-panel adsense-panel" style="flex:1;max-width:340px;height:80px;">
-        <ins class="adsbygoogle"
-          style="display:block;width:100%;height:80px;"
-          data-ad-client="ca-pub-3662032261764585"
-          data-ad-slot="auto"
-          data-ad-format="auto"></ins>
+      <div class="cage-panel adsense-panel" style="flex:1;height:40px;">
+        <!-- AdSense unit goes here when approved -->
       </div>
     </div>
 
