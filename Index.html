@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fight Trivia</title>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3662032261764585" crossorigin="anonymous"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       :root {
@@ -441,30 +440,8 @@
   <!-- Cage wrapper — panels around the octagon -->
   <div id="cage-wrapper" style="display:none;flex-direction:column;align-items:center;width:100%;max-width:960px;gap:4px;">
 
-    <!-- Top panels -->
-    <div style="display:flex;gap:4px;width:100%;">
-      <div class="cage-panel sponsor-panel" style="height:40px;flex:1;">
-        <span class="cage-panel-label">Advertise Here</span>
-        <a href="mailto:kholmstrom13@gmail.com" class="cage-panel-link">Contact Us</a>
-      </div>
-      <div class="cage-panel sponsor-panel" style="height:40px;flex:1;">
-        <span class="cage-panel-label">Advertise Here</span>
-        <a href="mailto:kholmstrom13@gmail.com" class="cage-panel-link">Contact Us</a>
-      </div>
-    </div>
-
     <!-- Middle row using CSS grid — side panels don't affect octagon height -->
-    <div id="cage-middle-grid" style="display:grid;grid-template-columns:30px 1fr 30px;gap:4px;width:100%;align-items:start;">
-
-      <!-- Left panel -->
-      <div class="cage-panel-side" style="display:flex;flex-direction:column;gap:4px;">
-        <div class="cage-panel adsense-panel" style="height:150px;width:30px;">
-          <span style="font-size:7px;color:#2a2a2a;writing-mode:vertical-rl;">Ad</span>
-        </div>
-        <div class="cage-panel sponsor-panel" style="height:100px;width:30px;">
-          <span style="font-size:7px;color:#333;writing-mode:vertical-rl;">Ad</span>
-        </div>
-      </div>
+    <div id="cage-middle-grid" style="display:block;width:100%;">
 
       <!-- Game Container -->
       <div id="gameContainer" class="octagon relative w-full max-w-4xl h-[86vh] max-h-[760px] bg-gray-900 border-8 border-ufc-muted p-4 sm:p-6 flex flex-col items-center justify-start gap-2 transition-all duration-300" style="display:flex;">
@@ -536,27 +513,7 @@
     </div>
   </div> <!-- end gameContainer -->
 
-      <!-- Right panel -->
-      <div class="cage-panel-side" style="display:flex;flex-direction:column;gap:4px;">
-        <div class="cage-panel sponsor-panel" style="height:100px;width:30px;">
-          <span style="font-size:7px;color:#333;writing-mode:vertical-rl;">Ad</span>
-        </div>
-        <div class="cage-panel adsense-panel" style="height:150px;width:30px;">
-          <span style="font-size:7px;color:#2a2a2a;writing-mode:vertical-rl;">Ad</span>
-        </div>
-      </div>
-
     </div> <!-- end middle grid -->
-
-    <!-- Bottom panels -->
-    <div style="display:flex;gap:4px;width:100%;">
-      <div class="cage-panel adsense-panel" style="flex:1;height:40px;">
-        <!-- AdSense unit goes here when approved -->
-      </div>
-      <div class="cage-panel adsense-panel" style="flex:1;height:40px;">
-        <!-- AdSense unit goes here when approved -->
-      </div>
-    </div>
 
   </div> <!-- end cage-wrapper -->
 
@@ -707,11 +664,7 @@
       try{ if(hasPlayedThisSet()){ alert("You've already played this week's game! Come back Monday, Wednesday, or Saturday for new questions."); return; } }catch(e){}
       document.getElementById('welcomeScreen').style.display='none';
       document.getElementById('cage-wrapper').style.display='flex';
-      // init AdSense panels
-      try{ 
-        const ads = document.querySelectorAll('.adsbygoogle');
-        ads.forEach(() => (adsbygoogle=window.adsbygoogle||[]).push({}));
-      }catch(e){}
+
       startControls.classList.add('hidden');
       gameBox.classList.remove("hidden");
       currentQuestionIndex=0; score=0; questionHistory=[];
