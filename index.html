@@ -282,8 +282,19 @@
         }
         #title svg { width: 22px !important; height: 22px !important; }
 
-        /* Round label — smaller, fits next to title */
-        #round-label { font-size: 0.85rem !important; }
+        /* Round label — move below header on mobile to avoid overlap with title gloves */
+        #round-label {
+          font-size: 0.85rem !important;
+          position: static !important;
+          display: block;
+          text-align: center;
+          margin-top: 2px;
+        }
+        /* Also make header wrap on mobile */
+        header {
+          flex-wrap: wrap;
+          justify-content: center !important;
+        }
 
         /* Question card — full width on mobile */
         #question {
@@ -467,7 +478,7 @@
       </div>
 
       <!-- Game Container -->
-      <div id="gameContainer" class="octagon relative w-full max-w-4xl h-[90vh] max-h-[820px] bg-gray-900 border-8 border-ufc-muted p-4 sm:p-6 flex flex-col items-center justify-start gap-2 transition-all duration-300" style="display:flex;">
+      <div id="gameContainer" class="octagon relative w-full max-w-4xl h-[90vh] max-h-[790px] bg-gray-900 border-8 border-ufc-muted p-4 sm:p-6 flex flex-col items-center justify-start gap-2 transition-all duration-300" style="display:flex;">
     <header class="w-full flex items-center justify-center relative px-4 mb-0">
       <h1 id="title" class="font-bold tracking-wide text-center" style="display:flex;align-items:center;justify-content:center;gap:10px;">
         <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
@@ -492,7 +503,7 @@
           <ellipse cx="32" cy="26" rx="8" ry="4" fill="white" opacity="0.07"/>
         </svg>
       </h1>
-      <div id="round-label" class="text-sm opacity-90 absolute right-4"></div>
+      <div id="round-label" class="text-sm opacity-90 absolute right-4" style=""></div>
     </header>
 
     <div id="spinner-wrap" class="w-full flex flex-col items-center justify-center mt-2">
