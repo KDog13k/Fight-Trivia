@@ -206,7 +206,7 @@
         flex: 1;
       }
       .cage-panel-side {
-        width: 20px;
+        width: 120px;
         min-height: unset;
         flex: none;
         overflow: hidden;
@@ -245,6 +245,8 @@
 
         /* Hide side ad panels on mobile — they squeeze the octagon */
         .cage-panel-side { display: none !important; }
+        #left-ad-col, #right-ad-col { display: none !important; }
+        #outer-layout { flex-direction: column !important; align-items: center !important; }
 
         /* Switch middle row from 3-col grid to single column */
         #cage-middle-grid {
@@ -450,33 +452,40 @@
     <button id="welcomeStartBtn" style="background:linear-gradient(135deg,#e50914,#c00813);color:white;border:none;padding:20px 50px;font-size:1.4rem;border-radius:35px;cursor:pointer;font-weight:bold;margin-top:25px;box-shadow:0 8px 25px rgba(0,0,0,0.5);transition:all 0.3s ease;">START FIGHT 🥊</button>
   </div>
 
+  <!-- Full width layout: side ads + octagon -->
+  <div id="outer-layout" style="display:none;width:100%;height:100vh;flex-direction:row;align-items:flex-start;justify-content:center;gap:8px;padding:8px;box-sizing:border-box;">
+
+    <!-- Left ad column -->
+    <div id="left-ad-col" style="width:140px;flex-shrink:0;display:flex;flex-direction:column;gap:8px;padding-top:52px;">
+      <div class="cage-panel sponsor-panel" style="width:140px;height:250px;">
+        <span class="cage-panel-label">Advertise Here</span>
+        <a href="mailto:kholmstrom13@gmail.com" class="cage-panel-link">Contact Us</a>
+      </div>
+      <div class="cage-panel adsense-panel" style="width:140px;height:250px;">
+        <span style="font-size:9px;color:#333;">Ad</span>
+      </div>
+    </div>
+
   <!-- Cage wrapper — panels around the octagon -->
   <div id="cage-wrapper" style="display:none;flex-direction:column;align-items:center;width:100%;max-width:960px;gap:4px;">
 
     <!-- Top panels -->
     <div style="display:flex;gap:4px;width:100%;">
-      <div class="cage-panel sponsor-panel" style="height:28px;flex:1;">
+      <div class="cage-panel sponsor-panel" style="height:40px;flex:1;">
         <span class="cage-panel-label">Advertise Here</span>
         <a href="mailto:kholmstrom13@gmail.com" class="cage-panel-link">Contact Us</a>
       </div>
-      <div class="cage-panel sponsor-panel" style="height:28px;flex:1;">
+      <div class="cage-panel sponsor-panel" style="height:40px;flex:1;">
         <span class="cage-panel-label">Advertise Here</span>
         <a href="mailto:kholmstrom13@gmail.com" class="cage-panel-link">Contact Us</a>
       </div>
     </div>
 
     <!-- Middle row using CSS grid — side panels don't affect octagon height -->
-    <div id="cage-middle-grid" style="display:grid;grid-template-columns:20px 1fr 20px;gap:4px;width:100%;align-items:start;">
+    <div id="cage-middle-grid" style="display:block;width:100%;position:relative;">
 
       <!-- Left panel -->
-      <div class="cage-panel-side" style="display:flex;flex-direction:column;gap:4px;">
-        <div class="cage-panel adsense-panel" style="height:150px;width:20px;">
-          <span style="font-size:7px;color:#2a2a2a;writing-mode:vertical-rl;">Ad</span>
-        </div>
-        <div class="cage-panel sponsor-panel" style="height:100px;width:20px;">
-          <span style="font-size:7px;color:#333;writing-mode:vertical-rl;">Ad</span>
-        </div>
-      </div>
+      
 
       <!-- Game Container -->
       <div id="gameContainer" class="octagon relative w-full max-w-4xl h-[90vh] max-h-[790px] bg-gray-900 border-8 border-ufc-muted p-4 sm:p-6 flex flex-col items-center justify-start gap-2 transition-all duration-300" style="display:flex;">
@@ -549,14 +558,7 @@
   </div> <!-- end gameContainer -->
 
       <!-- Right panel -->
-      <div class="cage-panel-side" style="display:flex;flex-direction:column;gap:4px;">
-        <div class="cage-panel sponsor-panel" style="height:100px;width:20px;">
-          <span style="font-size:7px;color:#333;writing-mode:vertical-rl;">Ad</span>
-        </div>
-        <div class="cage-panel adsense-panel" style="height:150px;width:20px;">
-          <span style="font-size:7px;color:#2a2a2a;writing-mode:vertical-rl;">Ad</span>
-        </div>
-      </div>
+      
 
     </div> <!-- end middle grid -->
 
@@ -571,6 +573,19 @@
     </div>
 
   </div> <!-- end cage-wrapper -->
+
+    <!-- Right ad column -->
+    <div id="right-ad-col" style="width:140px;flex-shrink:0;display:flex;flex-direction:column;gap:8px;padding-top:52px;">
+      <div class="cage-panel sponsor-panel" style="width:140px;height:250px;">
+        <span class="cage-panel-label">Advertise Here</span>
+        <a href="mailto:kholmstrom13@gmail.com" class="cage-panel-link">Contact Us</a>
+      </div>
+      <div class="cage-panel adsense-panel" style="width:140px;height:250px;">
+        <span style="font-size:9px;color:#333;">Ad</span>
+      </div>
+    </div>
+
+  </div> <!-- end outer-layout -->
 
   <!-- Audio -->
   <audio id="sound-bell"       preload="auto" src="https://www.dropbox.com/scl/fi/ec6qrb2jdfa0a7ho59tfm/Boxing-Bell-Sound-FX.mp3?rlkey=b5g1sdpdug4w34spisa2lvq8z&st=hn9vt638&dl=1"></audio>
@@ -718,6 +733,7 @@
       if(!questions.length){ alert("Questions still loading, please wait."); return; }
       try{ if(hasPlayedThisSet()){ alert("You've already played this week's game! Come back Monday, Wednesday, or Saturday for new questions."); return; } }catch(e){}
       document.getElementById('welcomeScreen').style.display='none';
+      document.getElementById('outer-layout').style.display='flex';
       document.getElementById('cage-wrapper').style.display='flex';
       // init AdSense panels
       try{ 
