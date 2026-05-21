@@ -22,6 +22,152 @@
     <link rel="canonical" href="https://fighttrivia.com">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3662032261764585" crossorigin="anonymous"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, startAfter, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAE3Xn3ajGGH9Lh8LgIR6y7aPrK-UpIYTs",
+      authDomain: "fight-trivia.firebaseapp.com",
+      projectId: "fight-trivia",
+      storageBucket: "fight-trivia.firebasestorage.app",
+      messagingSenderId: "881760466442",
+      appId: "1:881760466442:web:3ce53f8b93f4055541d1f3"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const googleProvider = new GoogleAuthProvider();
+
+    // Track current user globally
+    window.currentUser = null;
+    window.db = db;
+    window.auth = auth;
+
+    onAuthStateChanged(auth, user => {
+      window.currentUser = user;
+      updateAuthUI(user);
+    });
+
+    function updateAuthUI(user) {
+      const authBtn = document.getElementById('auth-btn');
+      const authBtnWelcome = document.getElementById('auth-btn-welcome');
+      if (!authBtn) return;
+      if (user) {
+        authBtn.textContent = user.displayName || user.email;
+        authBtn.onclick = () => signOutUser();
+        if (authBtnWelcome) { authBtnWelcome.textContent = '✅ Signed in as ' + (user.displayName || user.email); authBtnWelcome.onclick = () => signOutUser(); }
+      } else {
+        authBtn.textContent = 'Sign In / Sign Up';
+        authBtn.onclick = () => showAuthModal();
+        if (authBtnWelcome) { authBtnWelcome.textContent = 'Sign In / Sign Up to appear on leaderboard'; authBtnWelcome.onclick = () => showAuthModal(); }
+      }
+    }
+
+    async function signOutUser() {
+      await signOut(auth);
+    }
+
+    window.showAuthModal = function() {
+      document.getElementById('auth-modal-backdrop').style.display = 'flex';
+    };
+
+    window.closeAuthModal = function() {
+      document.getElementById('auth-modal-backdrop').style.display = 'none';
+      document.getElementById('auth-error').textContent = '';
+    };
+
+    window.handleSignup = async function() {
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const username = document.getElementById('auth-username').value.trim();
+      const err = document.getElementById('auth-error');
+      if (!username) { err.textContent = 'Please enter a username.'; return; }
+      if (!email || !password) { err.textContent = 'Please enter email and password.'; return; }
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(cred.user, { displayName: username });
+        await setDoc(doc(db, 'users', cred.user.uid), { username, email, createdAt: serverTimestamp() });
+        window.closeAuthModal();
+      } catch(e) { err.textContent = e.message; }
+    };
+
+    window.handleSignin = async function() {
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const err = document.getElementById('auth-error');
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        window.closeAuthModal();
+      } catch(e) { err.textContent = e.message; }
+    };
+
+    window.handleGoogleSignin = async function() {
+      const err = document.getElementById('auth-error');
+      try {
+        const cred = await signInWithPopup(auth, googleProvider);
+        const user = cred.user;
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (!userDoc.exists()) {
+          await setDoc(doc(db, 'users', user.uid), { username: user.displayName || user.email, email: user.email, createdAt: serverTimestamp() });
+        }
+        window.closeAuthModal();
+      } catch(e) { err.textContent = e.message; }
+    };
+
+    window.saveScoreToLeaderboard = async function(score, questionDate) {
+      if (!window.currentUser) return;
+      const user = window.currentUser;
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      const username = userDoc.exists() ? userDoc.data().username : (user.displayName || user.email);
+      const ref = doc(db, 'leaderboard', questionDate + '_' + user.uid);
+      const existing = await getDoc(ref);
+      // Only save if no existing score (first score wins tiebreaker)
+      if (!existing.exists()) {
+        await setDoc(ref, { username, score, questionDate, timestamp: serverTimestamp(), uid: user.uid });
+      } else if (score > existing.data().score) {
+        await setDoc(ref, { username, score, questionDate, timestamp: serverTimestamp(), uid: user.uid });
+      }
+    };
+
+    window.loadLeaderboard = async function(questionDate, page) {
+      const container = document.getElementById('leaderboard-rows');
+      container.innerHTML = '<div style="color:#aaa;text-align:center;padding:16px;">Loading...</div>';
+      try {
+        const PAGE_SIZE = 10;
+        const q = query(
+          collection(db, 'leaderboard'),
+          orderBy('score', 'desc'),
+          orderBy('timestamp', 'asc'),
+          limit(PAGE_SIZE)
+        );
+        // Filter by questionDate client-side
+        const snap = await getDocs(q);
+        const rows = snap.docs
+          .map(d => d.data())
+          .filter(d => d.questionDate === questionDate);
+
+        if (rows.length === 0) {
+          container.innerHTML = '<div style="color:#aaa;text-align:center;padding:16px;">No scores yet for this round!</div>';
+          return;
+        }
+
+        container.innerHTML = rows.map((r, i) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:6px;border-left:3px solid ${i===0?'#ffd966':i===1?'#aaa':i===2?'#cd7f32':'#333'};">
+            <span style="color:#aaa;font-size:0.8rem;width:24px;">${i+1}</span>
+            <span style="flex:1;font-weight:600;${window.currentUser && r.uid===window.currentUser.uid?'color:#e50914;':''}">
+              ${r.username}${window.currentUser && r.uid===window.currentUser.uid?' (you)':''}
+            </span>
+            <span style="color:#ffd966;font-weight:800;">${r.score} pts</span>
+          </div>`).join('');
+      } catch(e) {
+        container.innerHTML = '<div style="color:#ff4455;text-align:center;padding:16px;">Error loading leaderboard.</div>';
+      }
+    };
+  </script>
     <style>
       :root {
         --ufc-red: #e50914;
@@ -465,6 +611,7 @@
         </ul>
       </div>
     </div>
+    <button id="auth-btn-welcome" onclick="showAuthModal()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#aaa;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:0.85rem;margin-bottom:16px;display:block;width:100%;">Sign In / Sign Up to appear on leaderboard</button>
     <button id="welcomeStartBtn" style="background:linear-gradient(135deg,#e50914,#c00813);color:white;border:none;padding:20px 50px;font-size:1.4rem;border-radius:35px;cursor:pointer;font-weight:bold;margin-top:25px;box-shadow:0 8px 25px rgba(0,0,0,0.5);transition:all 0.3s ease;">START FIGHT</button>
   </div>
 
@@ -527,6 +674,7 @@
         </svg>
       </h1>
       <div id="round-label" class="text-sm opacity-90 absolute right-4" style=""></div>
+      <button id="auth-btn" onclick="showAuthModal()" style="position:absolute;left:4px;top:0;background:rgba(255,255,255,0.08);border:1px solid #333;color:#aaa;padding:4px 10px;border-radius:6px;font-size:10px;cursor:pointer;letter-spacing:1px;">Sign In / Sign Up</button>
     </header>
 
     <div id="spinner-wrap" class="w-full flex flex-col items-center justify-center mt-2">
@@ -828,6 +976,7 @@
       const outcomeText=getFightOutcome(score);
       const isNew=saveHighScore(score);
       updateHighScoreDisplay(); markAsPlayed(); stopFeedbackSounds();
+      if(window.saveScoreToLeaderboard) window.saveScoreToLeaderboard(score, getCurrentQuestionDate());
       setTimeout(()=>{
         if(outcomeText.includes("Draw")) playSound(document.getElementById('draw'));
         else if(outcomeText.includes("Victory")){
@@ -897,6 +1046,17 @@
         if(s.style.display==='none'){ s.style.display='block'; this.textContent='▲ Hide Review'; }
         else{ s.style.display='none'; this.textContent='📄 Review All Questions'; }
       });
+      document.getElementById('leaderboard-toggle-btn').addEventListener('click',function(){
+        const s=document.getElementById('leaderboard-section');
+        if(s.style.display==='none'){
+          s.style.display='block';
+          this.textContent='▲ Hide Leaderboard';
+          if(window.loadLeaderboard) window.loadLeaderboard(questions[0]?.date||'', 1);
+        } else {
+          s.style.display='none';
+          this.textContent='🏆 Leaderboard';
+        }
+      });
     }
 
     startBtn.addEventListener("click",startFight);
@@ -918,6 +1078,16 @@
       document.body.appendChild(b);
       b.addEventListener('click',e=>{ if(e.target===b) closeFlagModal(); });
       setTimeout(()=>{ const m=document.getElementById('flag-message'); if(m) m.focus(); },100);
+    }
+    function switchTab(tab) {
+      const isSignup = tab === "signup";
+      document.getElementById("tab-signin").style.background = isSignup ? "#1a1a1a" : "#e50914";
+      document.getElementById("tab-signin").style.color = isSignup ? "#aaa" : "#fff";
+      document.getElementById("tab-signup").style.background = isSignup ? "#e50914" : "#1a1a1a";
+      document.getElementById("tab-signup").style.color = isSignup ? "#fff" : "#aaa";
+      document.getElementById("username-field").style.display = isSignup ? "block" : "none";
+      document.getElementById("auth-submit-btn").textContent = isSignup ? "Create Account" : "Sign In";
+      document.getElementById("auth-submit-btn").onclick = isSignup ? handleSignup : handleSignin;
     }
     function closeFlagModal(){ const b=document.getElementById('flag-backdrop'); if(b) b.remove(); }
     async function submitFlag(idx){
@@ -953,3 +1123,36 @@
   </script>
 </body>
 </html>
+
+  <!-- Auth Modal -->
+  <div id="auth-modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:#111;border:2px solid #e50914;border-radius:16px;padding:32px;width:90%;max-width:400px;color:#fff;position:relative;">
+      <button onclick="closeAuthModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;color:#aaa;font-size:1.4rem;cursor:pointer;">✕</button>
+      <h2 style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;margin-bottom:20px;text-align:center;">FIGHT TRIVIA</h2>
+
+      <!-- Tabs -->
+      <div style="display:flex;gap:0;margin-bottom:20px;border-radius:8px;overflow:hidden;border:1px solid #333;">
+        <button id="tab-signin" onclick="switchTab('signin')" style="flex:1;padding:10px;background:#e50914;color:#fff;border:none;cursor:pointer;font-weight:700;font-size:0.9rem;">Sign In</button>
+        <button id="tab-signup" onclick="switchTab('signup')" style="flex:1;padding:10px;background:#1a1a1a;color:#aaa;border:none;cursor:pointer;font-weight:700;font-size:0.9rem;">Sign Up</button>
+      </div>
+
+      <!-- Username (signup only) -->
+      <div id="username-field" style="display:none;margin-bottom:12px;">
+        <input id="auth-username" type="text" placeholder="Choose a username" style="width:100%;padding:12px;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:0.95rem;box-sizing:border-box;">
+      </div>
+
+      <input id="auth-email" type="email" placeholder="Email" style="width:100%;padding:12px;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:0.95rem;margin-bottom:12px;box-sizing:border-box;">
+      <input id="auth-password" type="password" placeholder="Password" style="width:100%;padding:12px;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:0.95rem;margin-bottom:8px;box-sizing:border-box;">
+
+      <div id="auth-error" style="color:#ff4455;font-size:0.8rem;min-height:20px;margin-bottom:8px;text-align:center;"></div>
+
+      <button id="auth-submit-btn" onclick="handleSignin()" style="width:100%;padding:12px;background:#e50914;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:1rem;cursor:pointer;margin-bottom:12px;">Sign In</button>
+
+      <div style="text-align:center;color:#555;font-size:0.8rem;margin-bottom:12px;">— or —</div>
+
+      <button onclick="handleGoogleSignin()" style="width:100%;padding:12px;background:#fff;color:#333;border:none;border-radius:8px;font-weight:700;font-size:0.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continue with Google
+      </button>
+    </div>
+  </div>
