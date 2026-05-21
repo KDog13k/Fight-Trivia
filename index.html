@@ -345,6 +345,56 @@
       .fade-out { animation: fadeOut .28s ease forwards; }
       @keyframes fadeOut { from{opacity:1;transform:translateY(0);} to{opacity:0;transform:translateY(6px);} }
 
+      
+      /* Mobile sticky bottom ad */
+      #mobile-ad-banner {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: rgba(17,17,17,0.97);
+        border-top: 1px solid #333;
+        z-index: 8888;
+        flex-direction: column;
+        transition: transform 0.3s ease;
+      }
+      #mobile-ad-banner.minimized {
+        transform: translateY(calc(100% - 32px));
+      }
+      #mobile-ad-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 12px;
+        background: rgba(255,255,255,0.05);
+        border-bottom: 1px solid #222;
+      }
+      #mobile-ad-controls span {
+        font-size: 10px;
+        color: #555;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      #mobile-ad-controls button {
+        background: none;
+        border: none;
+        color: #666;
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 0 6px;
+      }
+      #mobile-ad-content {
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #333;
+        font-size: 10px;
+      }
+      @media (min-width: 641px) {
+        #mobile-ad-banner { display: none !important; }
+      }
       @media (prefers-reduced-motion:reduce) {
         .spinner{animation:none;}
         .flash-good,.flash-bad,.pop-in,.fade-in,.fade-out{animation:none!important;}
@@ -886,6 +936,7 @@
       try{ if(hasPlayedThisSet()){ alert("You've already played this week's game! Come back Monday, Wednesday, or Saturday for new questions."); return; } }catch(e){}
       document.getElementById('welcomeScreen').style.display='none';
       document.getElementById('outer-layout').style.display='flex';
+      showMobileAd();
       document.getElementById('cage-wrapper').style.display='flex';
       // init AdSense panels
       try{ 
@@ -1103,6 +1154,32 @@
       }catch(e){ st.textContent='Something went wrong. Try again.'; st.style.color='#ff4455'; sb.textContent='Send Feedback'; sb.disabled=false; }
     }
 
+    
+    // Mobile ad
+    function showMobileAd() {
+      if(window.innerWidth <= 640) {
+        const ad = document.getElementById('mobile-ad-banner');
+        if(ad && !sessionStorage.getItem('mobileAdDismissed')) {
+          ad.style.display = 'flex';
+        }
+      }
+    }
+    function dismissMobileAd() {
+      const ad = document.getElementById('mobile-ad-banner');
+      if(ad) ad.style.display = 'none';
+      sessionStorage.setItem('mobileAdDismissed', '1');
+    }
+    function minimizeMobileAd() {
+      const ad = document.getElementById('mobile-ad-banner');
+      const btn = document.getElementById('mobile-ad-minimize');
+      if(ad.classList.contains('minimized')) {
+        ad.classList.remove('minimized');
+        btn.innerHTML = '&#8964;';
+      } else {
+        ad.classList.add('minimized');
+        btn.innerHTML = '&#8963;';
+      }
+    }
     loadQuestions(); updateHUD();
     document.querySelectorAll('audio').forEach(a=>{ a.volume=0.5; });
 
@@ -1121,6 +1198,20 @@
       else{ rc.classList.add('open'); this.textContent='📖 Hide Rules'; }
     });
   </script>
+
+  <!-- Mobile sticky bottom ad -->
+  <div id="mobile-ad-banner">
+    <div id="mobile-ad-controls">
+      <span>Advertisement</span>
+      <div>
+        <button id="mobile-ad-minimize" onclick="minimizeMobileAd()" title="Minimize">&#8964;</button>
+        <button onclick="dismissMobileAd()" title="Close">&#10005;</button>
+      </div>
+    </div>
+    <div id="mobile-ad-content">
+      <span style="font-size:9px;color:#333;">Ad</span>
+    </div>
+  </div>
 </body>
 </html>
 
