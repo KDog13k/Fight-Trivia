@@ -465,17 +465,14 @@
         </ul>
       </div>
     </div>
-    <button id="welcomeStartBtn" style="background:linear-gradient(135deg,#e50914,#c00813);color:white;border:none;padding:20px 50px;font-size:1.4rem;border-radius:35px;cursor:pointer;font-weight:bold;margin-top:25px;box-shadow:0 8px 25px rgba(0,0,0,0.5);transition:all 0.3s ease;">START FIGHT 🥊</button>
+    <button id="welcomeStartBtn" style="background:linear-gradient(135deg,#e50914,#c00813);color:white;border:none;padding:20px 50px;font-size:1.4rem;border-radius:35px;cursor:pointer;font-weight:bold;margin-top:25px;box-shadow:0 8px 25px rgba(0,0,0,0.5);transition:all 0.3s ease;">START FIGHT</button>
   </div>
 
   <!-- Full width layout: side ads + octagon -->
-  <div id="outer-layout" style="display:none;width:100vw;min-height:100vh;flex-direction:row;align-items:stretch;justify-content:center;gap:4px;padding:0 4px;box-sizing:border-box;">
+  <div id="outer-layout" style="display:none;width:100vw;height:100vh;max-height:100vh;flex-direction:row;align-items:stretch;justify-content:center;gap:0;padding:0;box-sizing:border-box;overflow:hidden;">
 
     <!-- Left ad column -->
-    <div id="left-ad-col" style="width:160px;flex-shrink:0;display:flex;flex-direction:column;gap:4px;padding-top:0px;align-self:stretch;">
-      <div class="cage-panel adsense-panel" style="width:160px;flex:1;">
-        <span style="font-size:9px;color:#333;">Ad</span>
-      </div>
+    <div id="left-ad-col" style="width:160px;flex-shrink:0;display:flex;flex-direction:column;gap:0;padding:0;align-self:stretch;">
       <div class="cage-panel adsense-panel" style="width:160px;flex:1;">
         <span style="font-size:9px;color:#333;">Ad</span>
       </div>
@@ -485,12 +482,12 @@
     </div>
 
   <!-- Cage wrapper — panels around the octagon -->
-  <div id="cage-wrapper" style="display:none;flex-direction:column;align-items:center;width:100%;max-width:960px;gap:4px;">
+  <div id="cage-wrapper" style="display:none;flex-direction:column;align-items:center;width:100%;max-width:960px;gap:0;">
 
 
 
     <!-- Top panels -->
-    <div style="display:flex;gap:4px;width:100%;">
+    <div style="display:flex;gap:0;width:100%;">
       <div class="cage-panel adsense-panel" style="height:32px;flex:1;">
         <span class="cage-panel-label">Advertise Here</span>
         <a href="mailto:kholmstrom13@gmail.com" class="cage-panel-link">Contact Us</a>
@@ -578,23 +575,12 @@
 
     </div> <!-- end middle grid -->
 
-    <!-- Bottom panels -->
-    <div style="display:flex;gap:4px;width:100%;">
-      <div class="cage-panel adsense-panel" style="flex:1;height:32px;">
-        <!-- AdSense unit goes here when approved -->
-      </div>
-      <div class="cage-panel adsense-panel" style="flex:1;height:32px;">
-        <!-- AdSense unit goes here when approved -->
-      </div>
-    </div>
+
 
   </div> <!-- end cage-wrapper -->
 
     <!-- Right ad column -->
-    <div id="right-ad-col" style="width:160px;flex-shrink:0;display:flex;flex-direction:column;gap:4px;padding-top:0px;align-self:stretch;">
-      <div class="cage-panel adsense-panel" style="width:160px;flex:1;">
-        <span style="font-size:9px;color:#333;">Ad</span>
-      </div>
+    <div id="right-ad-col" style="width:160px;flex-shrink:0;display:flex;flex-direction:column;gap:0;padding:0;align-self:stretch;">
       <div class="cage-panel adsense-panel" style="width:160px;flex:1;">
         <span style="font-size:9px;color:#333;">Ad</span>
       </div>
@@ -953,7 +939,7 @@
     document.getElementById('welcomeStartBtn').addEventListener('click',function(){
       if(!questions.length){
         this.textContent='⏳ Loading questions...'; this.disabled=true;
-        const c=setInterval(()=>{ if(questions.length){ clearInterval(c); this.textContent='START FIGHT 🥊'; this.disabled=false; startFight(); } },500);
+        const c=setInterval(()=>{ if(questions.length){ clearInterval(c); this.textContent='START FIGHT'; this.disabled=false; startFight(); } },500);
         return;
       }
       startFight();
