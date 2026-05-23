@@ -28,7 +28,20 @@
   <link rel="manifest" href="manifest.json">
 
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23111' rx='8'/><polygon points='35,10 65,10 90,35 90,65 65,90 35,90 10,65 10,35' fill='%231a1a1a' stroke='%23888' stroke-width='2'/><text x='50' y='48' text-anchor='middle' font-family='Arial Black' font-size='22' font-weight='900' fill='%23cc0000'>FT</text></svg>">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3662032261764585" crossorigin="anonymous"></script>
+      <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-9EPK1Y7MDP"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-9EPK1Y7MDP');
+
+    // Track game events
+    function trackEvent(name, params) {
+      if (typeof gtag !== 'undefined') gtag('event', name, params || {});
+    }
+  </script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3662032261764585" crossorigin="anonymous"></script>
     <script src="https://cdn.tailwindcss.com"></script>
   <!-- Firebase -->
   <script type="module">
@@ -98,9 +111,9 @@
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(cred.user, { displayName: username });
-        const notifyChecked = document.getElementById('auth-notify').checked;
-        await setDoc(doc(db, 'users', cred.user.uid), { username, email, notify: notifyChecked, createdAt: serverTimestamp() });
+        await setDoc(doc(db, 'users', cred.user.uid), { username, email, createdAt: serverTimestamp() });
         window.closeAuthModal();
+        trackEvent('sign_up', { method: 'email' });
       } catch(e) { err.textContent = e.message; }
     };
 
@@ -964,6 +977,7 @@
       }catch(e){}
       startControls.classList.add('hidden');
       gameBox.classList.remove("hidden");
+      trackEvent('game_start');
       currentQuestionIndex=0; score=0; questionHistory=[];
       momentum=50; roundNumber=1; roundCorrectCount=0; roundScore=0;
       hud.classList.remove("hidden"); updateHUD(); playSound(soundBell); showQuestion();
@@ -1002,12 +1016,14 @@
         momentum=clamp(momentum+(pts/MAX_SCORE_FOR_KO*100));
         resultEl.innerHTML=`✅ Correct! +${pts} points${q.fact?`<br><span class="text-sm opacity-75 mt-1 block">${q.fact}</span>`:''}`;
         playSound(soundCorrect); flashStage("good");
+        trackEvent('correct_answer', { difficulty: q.difficulty, points: pts });
         questionEl.animate([{transform:"scale(1)"},{transform:"scale(1.02)"},{transform:"scale(1)"}],{duration:300});
       } else {
         momentum=clamp(momentum-(pts/MAX_SCORE_FOR_KO*100));
         const displayCorrect = (q.answers[0]||"N/A").trim().replace(/\b\w/g, c => c.toUpperCase());
         resultEl.innerHTML=`❌ Incorrect — answer: ${displayCorrect}${q.fact?`<br><span class="text-sm opacity-75 mt-1 block">${q.fact}</span>`:''}`;
         playSound(soundWrong); flashStage("bad");
+        trackEvent('wrong_answer', { difficulty: q.difficulty });
         questionEl.animate([{transform:"scale(1)"},{transform:"scale(.98)"},{transform:"scale(1)"}],{duration:300});
       }
       updateHUD();
@@ -1046,6 +1062,7 @@
       const outcomeText=getFightOutcome(score);
       const isNew=saveHighScore(score);
       updateHighScoreDisplay(); markAsPlayed(); stopFeedbackSounds();
+      trackEvent('game_end', { score: score, outcome: getFightOutcome(score) });
       if(window.saveScoreToLeaderboard) window.saveScoreToLeaderboard(score, getCurrentQuestionDate());
       setTimeout(()=>{
         if(outcomeText.includes("Draw")) playSound(document.getElementById('draw'));
@@ -1221,6 +1238,7 @@
       clearInterval(timerInterval);
       timeLeft = 30;
       const display = document.getElementById('timer-display');
+      display.style.display = 'block';
       display.textContent = '30';
       display.style.color = '#ffd966';
       timerInterval = setInterval(() => {
@@ -1247,6 +1265,8 @@
 
     function stopTimer() {
       clearInterval(timerInterval);
+      const display = document.getElementById('timer-display');
+      if (display) { display.style.display = 'none'; display.textContent = ''; }
     }
 
 
@@ -1349,12 +1369,7 @@
       <input id="auth-email" type="email" placeholder="Email" style="width:100%;padding:12px;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:0.95rem;margin-bottom:12px;box-sizing:border-box;">
       <input id="auth-password" type="password" placeholder="Password" style="width:100%;padding:12px;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:0.95rem;margin-bottom:8px;box-sizing:border-box;">
 
-      <div id="email-notify-field" style="display:none;margin-bottom:12px;">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#aaa;font-size:0.85rem;">
-          <input type="checkbox" id="auth-notify" checked style="width:16px;height:16px;accent-color:#e50914;">
-          Notify me when new questions drop
-        </label>
-      </div>
+      
       <div id="auth-error" style="color:#ff4455;font-size:0.8rem;min-height:20px;margin-bottom:8px;text-align:center;"></div>
 
       <button id="auth-submit-btn" onclick="handleSignin()" style="width:100%;padding:12px;background:#e50914;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:1rem;cursor:pointer;margin-bottom:12px;">Sign In</button>
