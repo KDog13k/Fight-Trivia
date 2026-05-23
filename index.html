@@ -20,6 +20,13 @@
     <meta name="twitter:description" content="Test your UFC knowledge! New questions every Monday, Wednesday, and Saturday.">
 
     <link rel="canonical" href="https://fighttrivia.com">
+  <meta name="theme-color" content="#111111">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Fight Trivia">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23111' rx='8'/><polygon points='35,10 65,10 90,35 90,65 65,90 35,90 10,65 10,35' fill='%231a1a1a' stroke='%23888' stroke-width='2'/><text x='50' y='48' text-anchor='middle' font-family='Arial Black' font-size='22' font-weight='900' fill='%23cc0000'>FT</text></svg>">
+  <link rel="manifest" href="manifest.json">
+
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23111' rx='8'/><polygon points='35,10 65,10 90,35 90,65 65,90 35,90 10,65 10,35' fill='%231a1a1a' stroke='%23888' stroke-width='2'/><text x='50' y='48' text-anchor='middle' font-family='Arial Black' font-size='22' font-weight='900' fill='%23cc0000'>FT</text></svg>">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3662032261764585" crossorigin="anonymous"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -91,7 +98,8 @@
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(cred.user, { displayName: username });
-        await setDoc(doc(db, 'users', cred.user.uid), { username, email, createdAt: serverTimestamp() });
+        const notifyChecked = document.getElementById('auth-notify').checked;
+        await setDoc(doc(db, 'users', cred.user.uid), { username, email, notify: notifyChecked, createdAt: serverTimestamp() });
         window.closeAuthModal();
       } catch(e) { err.textContent = e.message; }
     };
@@ -633,6 +641,7 @@
         <div style="background:rgba(255,255,255,0.05);padding:15px;border-radius:10px;border-left:3px solid #e50914;"><div style="color:#e50914;font-weight:bold;font-size:0.9rem;margin-bottom:5px;">High Scores</div><div style="font-size:0.85rem;color:#d0d0d0;">Beat your personal best</div></div>
       </div>
     </div>
+    <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#aaa;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:0.85rem;margin-bottom:10px;width:100%;">📲 Add to Home Screen</button>
     <button id="rulesToggle" style="background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.3);color:white;padding:12px 25px;border-radius:10px;cursor:pointer;font-size:1rem;font-weight:bold;margin:20px 0;transition:all 0.3s ease;">📖 Show Full Rules</button>
     <div id="rulesContent" style="overflow:hidden;transition:max-height 0.5s ease;text-align:left;">
       <div style="background:rgba(255,255,255,0.05);padding:25px;border-radius:15px;margin:15px 0;border:2px solid rgba(229,9,20,0.3);">
@@ -1259,6 +1268,32 @@
       }
     };
 
+
+    // PWA Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+
+    // PWA Install prompt
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('pwa-install-btn').style.display = 'block';
+    });
+
+    window.installPWA = function() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+          deferredPrompt = null;
+          document.getElementById('pwa-install-btn').style.display = 'none';
+        });
+      }
+    };
+
     loadQuestions(); updateHUD();
     document.querySelectorAll('audio').forEach(a=>{ a.volume=0.5; });
 
@@ -1314,6 +1349,12 @@
       <input id="auth-email" type="email" placeholder="Email" style="width:100%;padding:12px;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:0.95rem;margin-bottom:12px;box-sizing:border-box;">
       <input id="auth-password" type="password" placeholder="Password" style="width:100%;padding:12px;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:0.95rem;margin-bottom:8px;box-sizing:border-box;">
 
+      <div id="email-notify-field" style="display:none;margin-bottom:12px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#aaa;font-size:0.85rem;">
+          <input type="checkbox" id="auth-notify" checked style="width:16px;height:16px;accent-color:#e50914;">
+          Notify me when new questions drop
+        </label>
+      </div>
       <div id="auth-error" style="color:#ff4455;font-size:0.8rem;min-height:20px;margin-bottom:8px;text-align:center;"></div>
 
       <button id="auth-submit-btn" onclick="handleSignin()" style="width:100%;padding:12px;background:#e50914;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:1rem;cursor:pointer;margin-bottom:12px;">Sign In</button>
