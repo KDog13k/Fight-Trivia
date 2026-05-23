@@ -1255,7 +1255,7 @@
             const pts = q.difficulty === 'Easy' ? 50 : q.difficulty === 'Medium' ? 75 : 100;
             momentum = Math.max(0, momentum - (pts / 350 * 100));
             const displayCorrect = (q.answers[0] || 'N/A').trim().replace(/\b\w/g, c => c.toUpperCase());
-            resultEl.innerHTML = '⏰ Time's Up! — answer: ' + displayCorrect + (q.fact ? '<br><span class="text-sm opacity-75 mt-1 block">' + q.fact + '</span>' : '');
+            resultEl.innerHTML = '⏰ Time is Up! — answer: ' + displayCorrect + (q.fact ? '<br><span class="text-sm opacity-75 mt-1 block">' + q.fact + '</span>' : '');
             questionHistory.push({ question: q.question, userAnswer: '(timed out)', correctAnswer: displayCorrect, correct: false, points: 0, maxPoints: pts, difficulty: q.difficulty, fact: q.fact });
             playSound(soundWrong); flashStage('bad'); updateHUD();
             submitBtn.classList.add('hidden'); nextBtn.classList.remove('hidden'); nextBtn.focus();
