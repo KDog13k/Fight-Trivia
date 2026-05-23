@@ -662,6 +662,14 @@
         </ul>
       </div>
     </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px;">
+      <label style="color:#aaa;font-size:0.9rem;cursor:pointer;display:flex;align-items:center;gap:8px;">
+        <div id="timer-switch" onclick="toggleTimerWelcome()" style="width:44px;height:24px;background:#333;border-radius:12px;cursor:pointer;position:relative;transition:background 0.2s;">
+          <div id="timer-switch-knob" style="width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left 0.2s;"></div>
+        </div>
+        <span id="timer-switch-label">⏱️ 30 Second Timer: Off</span>
+      </label>
+    </div>
     <button id="auth-btn-welcome" onclick="showAuthModal()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#aaa;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:0.85rem;margin-bottom:16px;display:block;width:100%;">Sign In / Sign Up to appear on leaderboard</button>
     <button id="welcomeStartBtn" style="background:linear-gradient(135deg,#e50914,#c00813);color:white;border:none;padding:20px 50px;font-size:1.4rem;border-radius:35px;cursor:pointer;font-weight:bold;margin-top:25px;box-shadow:0 8px 25px rgba(0,0,0,0.5);transition:all 0.3s ease;">START FIGHT</button>
   </div>
@@ -736,7 +744,6 @@
     <!-- HUD -->
     <div class="w-full flex flex-col gap-1 mt-0 items-center hidden" id="hud">
       <div class="w-3/4 flex justify-end mb-1 gap-2">
-        <button id="timer-toggle" class="text-base bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors px-2 py-1 border border-gray-600 text-sm" title="Toggle 30s timer">Timer: Off</button>
         <button id="sound-toggle" class="text-base bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors px-2 py-1 border border-gray-600 text-sm" aria-label="Toggle sound">🔊</button>
       </div>
       <div id="timer-display" style="display:none;font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:3px;color:#ffd966;"></div>
@@ -1195,20 +1202,13 @@
     }
 
     // Timer
-    let timerEnabled = false;
     let timerInterval = null;
     let timeLeft = 30;
 
-    document.getElementById('timer-toggle').addEventListener('click', function() {
-      timerEnabled = !timerEnabled;
-      this.textContent = timerEnabled ? 'Timer: On' : 'Timer: Off';
-      this.style.background = timerEnabled ? '#e50914' : '';
-      this.style.borderColor = timerEnabled ? '#e50914' : '';
-      document.getElementById('timer-display').style.display = timerEnabled ? 'block' : 'none';
-    });
+    
 
     function startTimer() {
-      if (!timerEnabled) return;
+      if (!window.timerEnabled) return;
       clearInterval(timerInterval);
       timeLeft = 30;
       const display = document.getElementById('timer-display');
@@ -1239,6 +1239,25 @@
     function stopTimer() {
       clearInterval(timerInterval);
     }
+
+
+    // Timer welcome toggle
+    window.timerEnabled = false;
+    window.toggleTimerWelcome = function() {
+      window.timerEnabled = !window.timerEnabled;
+      const sw = document.getElementById('timer-switch');
+      const knob = document.getElementById('timer-switch-knob');
+      const label = document.getElementById('timer-switch-label');
+      if (window.timerEnabled) {
+        sw.style.background = '#e50914';
+        knob.style.left = '22px';
+        label.textContent = '⏱️ 30 Second Timer: On';
+      } else {
+        sw.style.background = '#333';
+        knob.style.left = '2px';
+        label.textContent = '⏱️ 30 Second Timer: Off';
+      }
+    };
 
     loadQuestions(); updateHUD();
     document.querySelectorAll('audio').forEach(a=>{ a.volume=0.5; });
