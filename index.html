@@ -20,6 +20,8 @@
     <meta name="twitter:description" content="Test your UFC knowledge! New questions every Monday, Wednesday, and Saturday.">
 
     <link rel="canonical" href="https://fighttrivia.com">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23111' rx='8'/><polygon points='35,10 65,10 90,35 90,65 65,90 35,90 10,65 10,35' fill='%231a1a1a' stroke='%23888' stroke-width='2'/><text x='50' y='48' text-anchor='middle' font-family='Arial Black' font-size='22' font-weight='900' fill='%23cc0000'>FT</text></svg>">
+
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3662032261764585" crossorigin="anonymous"></script>
     <script src="https://cdn.tailwindcss.com"></script>
   <!-- Firebase -->
@@ -734,9 +736,11 @@
 
     <!-- HUD -->
     <div class="w-full flex flex-col gap-1 mt-0 items-center hidden" id="hud">
-      <div class="w-3/4 flex justify-end mb-1">
+      <div class="w-3/4 flex justify-end mb-1 gap-2">
+        <button id="timer-toggle" class="text-base bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors px-2 py-1 border border-gray-600 text-sm" title="Toggle timer">Timer: Off</button>
         <button id="sound-toggle" class="text-base bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors px-2 py-1 border border-gray-600 text-sm" aria-label="Toggle sound">🔊</button>
       </div>
+      <div id="timer-display" style="display:none;font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:3px;color:#ffd966;"></div>
       <div class="w-3/4 bg-gray-900 border-2 border-ufc-muted rounded-xl p-1">
         <div class="h-5 bg-gradient-to-r from-ufc-gold to-ufc-good rounded-lg transition-all duration-500" id="momentum-bar" style="width:50%"></div>
       </div>
@@ -960,7 +964,7 @@
       submitBtn.classList.remove('bg-ufc-red','hover:bg-red-700','active:scale-95');
       submitBtn.classList.add('bg-gray-600');
       nextBtn.classList.add('hidden');
-      setTimeout(()=>{ fadeInQuestion(); answerInput.focus(); },180);
+      setTimeout(()=>{ fadeInQuestion(); answerInput.focus(); startTimer(); },180);
       roundLabel.textContent=`Round ${roundNumber}`;
       const tot=Math.min(QUESTIONS_PER_ROUND,questions.length-(roundNumber-1)*QUESTIONS_PER_ROUND);
       const rp=(currentQuestionIndex%QUESTIONS_PER_ROUND)+1;
@@ -997,7 +1001,7 @@
 
     function stopFeedbackSounds(){ [soundCorrect,soundWrong].forEach(a=>{ a.pause(); a.currentTime=0; }); }
 
-    function handleNext(){
+    function handleNext(){ stopTimer();
       stopFeedbackSounds();
       const eor=((currentQuestionIndex+1)%QUESTIONS_PER_ROUND===0)||(currentQuestionIndex+1===questions.length);
       nextBtn.classList.add('hidden'); submitBtn.classList.remove('hidden');
@@ -1122,6 +1126,64 @@
       if(this.value.trim().length>0){ submitBtn.disabled=false; submitBtn.classList.add('bg-ufc-red','hover:bg-red-700','active:scale-95'); submitBtn.classList.remove('bg-gray-600'); }
       else{ submitBtn.disabled=true; submitBtn.classList.remove('bg-ufc-red','hover:bg-red-700','active:scale-95'); submitBtn.classList.add('bg-gray-600'); }
     });
+
+
+    // X Tweet button
+    document.getElementById('tweet-btn').addEventListener('click', function() {
+      const clean = outcomeText.replace(/[\u{1F4A5}\u{1F4AA}\u{1F4DD}\u{1F91D}\u{1F4CB}\u{1F97C}]/gu, '').trim();
+      const today = new Date();
+      const dateStr = today.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+      const emojiG = questionHistory.map(h => h.correct ? '🟩' : '🟥').join('');
+      const tweetText = encodeURIComponent('🥊 Fight Trivia — ' + dateStr + '\n' + emojiG + '\n' + score + '/350 — ' + clean + '\nhttps://fighttrivia.com');
+      window.open('https://twitter.com/intent/tweet?text=' + tweetText, '_blank');
+    });
+
+    // Timer
+    let timerEnabled = false;
+    let timerInterval = null;
+    let timeLeft = 30;
+
+    document.getElementById('timer-toggle').addEventListener('click', function() {
+      timerEnabled = !timerEnabled;
+      this.textContent = timerEnabled ? 'Timer: On' : 'Timer: Off';
+      this.style.background = timerEnabled ? '#e50914' : '';
+      document.getElementById('timer-display').style.display = timerEnabled ? 'block' : 'none';
+    });
+
+    function startTimer() {
+      if (!timerEnabled) return;
+      clearInterval(timerInterval);
+      timeLeft = 30;
+      const display = document.getElementById('timer-display');
+      display.textContent = timeLeft;
+      display.style.color = '#ffd966';
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        display.textContent = timeLeft;
+        if (timeLeft <= 10) display.style.color = '#e50914';
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          // Auto submit as wrong
+          if (!answerInput.disabled) {
+            answerInput.disabled = true;
+            submitBtn.disabled = true;
+            const q = questions[currentQuestionIndex];
+            const pts = q.difficulty === 'Easy' ? 50 : q.difficulty === 'Medium' ? 75 : 100;
+            momentum = Math.max(0, momentum - (pts / 350 * 100));
+            const displayCorrect = (q.answers[0] || 'N/A').trim().replace(/\b\w/g, c => c.toUpperCase());
+            resultEl.innerHTML = '⏰ Time up! — answer: ' + displayCorrect + (q.fact ? '<br><span class="text-sm opacity-75 mt-1 block">' + q.fact + '</span>' : '');
+            questionHistory.push({ question: q.question, userAnswer: '(timed out)', correctAnswer: displayCorrect, correct: false, points: 0, maxPoints: pts, difficulty: q.difficulty, fact: q.fact });
+            playSound(soundWrong); flashStage('bad'); updateHUD();
+            submitBtn.classList.add('hidden'); nextBtn.classList.remove('hidden'); nextBtn.focus();
+          }
+        }
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+      document.getElementById('timer-display').textContent = '';
+    }
 
     // Flag Modal
     const FORMSPREE_URL='https://formspree.io/f/mzdyvlpp';
