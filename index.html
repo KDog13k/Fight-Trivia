@@ -920,16 +920,25 @@
       soundToggle.textContent=soundEnabled?'🔊':'🔇';
     });
 
-    function loadQuestions(){
-      fetch(SHEET_API_URL)
+    function loadQuestions(attempt=1){
+      fetch(SHEET_API_URL + "?v=" + Date.now())
         .then(r => r.json())
         .then(data => {
-          if(data.error) { showLoadError(data.error); return; }
-          if(!data.questions || data.questions.length === 0) { showLoadError("No questions found."); return; }
+          if(data.error) { 
+            if(attempt < 3) { setTimeout(()=>loadQuestions(attempt+1), 2000); return; }
+            showLoadError(data.error); return; 
+          }
+          if(!data.questions || data.questions.length === 0) { 
+            if(attempt < 3) { setTimeout(()=>loadQuestions(attempt+1), 2000); return; }
+            showLoadError("No questions found."); return; 
+          }
           questions = data.questions;
           onQuestionsLoaded();
         })
-        .catch(err => showLoadError(err));
+        .catch(err => {
+          if(attempt < 3) { setTimeout(()=>loadQuestions(attempt+1), 2000); return; }
+          showLoadError(err);
+        });
     }
 
     function loadFighterNames(){
