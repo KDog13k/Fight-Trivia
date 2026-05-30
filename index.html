@@ -365,6 +365,31 @@
       @keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
 
       
+      
+      /* Inner octagon side bars */
+      #inner-bar-left, #inner-bar-right {
+        position: absolute;
+        top: 30%;
+        width: 6px;
+        height: 40%;
+        border-radius: 3px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: background 0.15s ease, box-shadow 0.15s ease;
+        z-index: 5;
+        pointer-events: none;
+      }
+      #inner-bar-left { left: 8px; }
+      #inner-bar-right { right: 8px; }
+      #inner-bar-left.bar-good, #inner-bar-right.bar-good {
+        background: rgba(46,204,113,0.8);
+        box-shadow: 0 0 12px rgba(46,204,113,0.8);
+      }
+      #inner-bar-left.bar-bad, #inner-bar-right.bar-bad {
+        background: rgba(255,77,77,0.8);
+        box-shadow: 0 0 12px rgba(255,77,77,0.8);
+      }
+
       .flash-good { box-shadow: 0 0 40px rgba(46,204,113,0.25),inset 0 0 40px rgba(46,204,113,0.05); border-color:#2ecc71!important; animation:flashbg 350ms ease; }
       .flash-bad  { box-shadow: 0 0 40px rgba(255,77,77,0.25), inset 0 0 40px rgba(255,77,77,0.05);  border-color:#ff4d4d!important; animation:flashbg 350ms ease; }
       @keyframes flashbg { 0%{transform:scale(1);} 50%{transform:scale(1.01);} 100%{transform:scale(1);} }
@@ -740,7 +765,9 @@
 
       <!-- Game Container -->
       <div id="gameContainer" class="octagon relative w-full max-w-4xl h-[90vh] max-h-[790px] bg-gray-900 border-8 border-ufc-muted p-4 sm:p-6 flex flex-col items-center justify-start gap-2 transition-all duration-300" style="display:flex;">
-    <header class="w-full flex items-center justify-center relative px-4 mb-0">
+    <div id="inner-bar-left"></div>
+      <div id="inner-bar-right"></div>
+      <header class="w-full flex items-center justify-center relative px-4 mb-0">
       <h1 id="title" class="font-bold tracking-wide text-center" style="display:flex;align-items:center;justify-content:center;gap:10px;">
         <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
           <rect x="16" y="42" width="32" height="14" rx="5" fill="#b00710"/>
@@ -913,6 +940,20 @@
       });
     }
 
+
+    function flashInnerBars(kind) {
+      const left = document.getElementById('inner-bar-left');
+      const right = document.getElementById('inner-bar-right');
+      const cls = kind === 'good' ? 'bar-good' : 'bar-bad';
+      [left, right].forEach(el => {
+        if (!el) return;
+        el.classList.remove('bar-good', 'bar-bad');
+        void el.offsetWidth;
+        el.classList.add(cls);
+        setTimeout(() => el.classList.remove(cls), 700);
+      });
+    }
+
     function flashStage(kind){
       const s=document.getElementById("gameContainer");
       s.classList.remove("flash-good","flash-bad"); void s.offsetWidth;
@@ -1050,14 +1091,14 @@
         score+=pts; roundScore+=pts; roundCorrectCount++;
         momentum=clamp(momentum+(pts/MAX_SCORE_FOR_KO*100));
         resultEl.innerHTML=`✅ Correct! +${pts} points${q.fact?`<br><span class="text-sm opacity-75 mt-1 block">${q.fact}</span>`:''}`;
-        playSound(soundCorrect); flashStage("good"); flashSidePanels("good");
+        playSound(soundCorrect); flashStage("good"); flashInnerBars("good"); flashSidePanels("good");
         trackEvent('correct_answer', { difficulty: q.difficulty, points: pts });
         questionEl.animate([{transform:"scale(1)"},{transform:"scale(1.02)"},{transform:"scale(1)"}],{duration:300});
       } else {
         momentum=clamp(momentum-(pts/MAX_SCORE_FOR_KO*100));
         const displayCorrect = (q.answers[0]||"N/A").trim().replace(/\b\w/g, c => c.toUpperCase());
         resultEl.innerHTML=`❌ Incorrect — answer: ${displayCorrect}${q.fact?`<br><span class="text-sm opacity-75 mt-1 block">${q.fact}</span>`:''}`;
-        playSound(soundWrong); flashStage("bad"); flashSidePanels("bad");
+        playSound(soundWrong); flashStage("bad"); flashInnerBars("bad"); flashSidePanels("bad");
         trackEvent('wrong_answer', { difficulty: q.difficulty });
         questionEl.animate([{transform:"scale(1)"},{transform:"scale(.98)"},{transform:"scale(1)"}],{duration:300});
       }
@@ -1293,7 +1334,7 @@
             const displayCorrect = (q.answers[0] || 'N/A').trim().replace(/\b\w/g, c => c.toUpperCase());
             resultEl.innerHTML = '⏰ Time is Up! — answer: ' + displayCorrect + (q.fact ? '<br><span class="text-sm opacity-75 mt-1 block">' + q.fact + '</span>' : '');
             questionHistory.push({ question: q.question, userAnswer: '(timed out)', correctAnswer: displayCorrect, correct: false, points: 0, maxPoints: pts, difficulty: q.difficulty, fact: q.fact });
-            playSound(soundWrong); flashStage('bad'); flashSidePanels('bad'); updateHUD();
+            playSound(soundWrong); flashStage('bad'); flashInnerBars('bad'); updateHUD();
             submitBtn.classList.add('hidden'); nextBtn.classList.remove('hidden'); nextBtn.focus();
           }
         }
