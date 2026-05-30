@@ -364,6 +364,34 @@
       .spinner { clip-path: polygon(30% 0%,70% 0%,100% 30%,100% 70%,70% 100%,30% 100%,0% 70%,0% 30%); animation: spin 1s linear infinite; }
       @keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
 
+      
+      /* Octagon corner lights */
+      .corner-light {
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.1);
+        border: 2px solid rgba(255,255,255,0.15);
+        transition: all 0.2s ease;
+        z-index: 10;
+        pointer-events: none;
+      }
+      .corner-light.flash-green {
+        background: rgba(46,204,113,0.9);
+        border-color: #2ecc71;
+        box-shadow: 0 0 20px rgba(46,204,113,0.8), 0 0 40px rgba(46,204,113,0.4);
+      }
+      .corner-light.flash-red {
+        background: rgba(255,77,77,0.9);
+        border-color: #ff4d4d;
+        box-shadow: 0 0 20px rgba(255,77,77,0.8), 0 0 40px rgba(255,77,77,0.4);
+      }
+      #corner-tl { top: 28%; left: 1%; }
+      #corner-tr { top: 28%; right: 1%; }
+      #corner-bl { bottom: 28%; left: 1%; }
+      #corner-br { bottom: 28%; right: 1%; }
+
       .flash-good { box-shadow: 0 0 40px rgba(46,204,113,0.25),inset 0 0 40px rgba(46,204,113,0.05); border-color:#2ecc71!important; animation:flashbg 350ms ease; }
       .flash-bad  { box-shadow: 0 0 40px rgba(255,77,77,0.25), inset 0 0 40px rgba(255,77,77,0.05);  border-color:#ff4d4d!important; animation:flashbg 350ms ease; }
       @keyframes flashbg { 0%{transform:scale(1);} 50%{transform:scale(1.01);} 100%{transform:scale(1);} }
@@ -739,7 +767,11 @@
 
       <!-- Game Container -->
       <div id="gameContainer" class="octagon relative w-full max-w-4xl h-[90vh] max-h-[790px] bg-gray-900 border-8 border-ufc-muted p-4 sm:p-6 flex flex-col items-center justify-start gap-2 transition-all duration-300" style="display:flex;">
-    <header class="w-full flex items-center justify-center relative px-4 mb-0">
+    <div id="corner-tl" class="corner-light"></div>
+      <div id="corner-tr" class="corner-light"></div>
+      <div id="corner-bl" class="corner-light"></div>
+      <div id="corner-br" class="corner-light"></div>
+      <header class="w-full flex items-center justify-center relative px-4 mb-0">
       <h1 id="title" class="font-bold tracking-wide text-center" style="display:flex;align-items:center;justify-content:center;gap:10px;">
         <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
           <rect x="16" y="42" width="32" height="14" rx="5" fill="#b00710"/>
@@ -896,6 +928,19 @@
       return "Knockout Victory 💥";
     }
 
+
+    function flashCorners(kind) {
+      const corners = ['corner-tl','corner-tr','corner-bl','corner-br'];
+      const cls = kind === 'good' ? 'flash-green' : 'flash-red';
+      corners.forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove('flash-green','flash-red');
+        void el.offsetWidth;
+        el.classList.add(cls);
+        setTimeout(() => el.classList.remove(cls), 800);
+      });
+    }
+
     function flashStage(kind){
       const s=document.getElementById("gameContainer");
       s.classList.remove("flash-good","flash-bad"); void s.offsetWidth;
@@ -1033,14 +1078,14 @@
         score+=pts; roundScore+=pts; roundCorrectCount++;
         momentum=clamp(momentum+(pts/MAX_SCORE_FOR_KO*100));
         resultEl.innerHTML=`✅ Correct! +${pts} points${q.fact?`<br><span class="text-sm opacity-75 mt-1 block">${q.fact}</span>`:''}`;
-        playSound(soundCorrect); flashStage("good");
+        playSound(soundCorrect); flashStage("good"); flashCorners("good");
         trackEvent('correct_answer', { difficulty: q.difficulty, points: pts });
         questionEl.animate([{transform:"scale(1)"},{transform:"scale(1.02)"},{transform:"scale(1)"}],{duration:300});
       } else {
         momentum=clamp(momentum-(pts/MAX_SCORE_FOR_KO*100));
         const displayCorrect = (q.answers[0]||"N/A").trim().replace(/\b\w/g, c => c.toUpperCase());
         resultEl.innerHTML=`❌ Incorrect — answer: ${displayCorrect}${q.fact?`<br><span class="text-sm opacity-75 mt-1 block">${q.fact}</span>`:''}`;
-        playSound(soundWrong); flashStage("bad");
+        playSound(soundWrong); flashStage("bad"); flashCorners("bad");
         trackEvent('wrong_answer', { difficulty: q.difficulty });
         questionEl.animate([{transform:"scale(1)"},{transform:"scale(.98)"},{transform:"scale(1)"}],{duration:300});
       }
@@ -1276,7 +1321,7 @@
             const displayCorrect = (q.answers[0] || 'N/A').trim().replace(/\b\w/g, c => c.toUpperCase());
             resultEl.innerHTML = '⏰ Time is Up! — answer: ' + displayCorrect + (q.fact ? '<br><span class="text-sm opacity-75 mt-1 block">' + q.fact + '</span>' : '');
             questionHistory.push({ question: q.question, userAnswer: '(timed out)', correctAnswer: displayCorrect, correct: false, points: 0, maxPoints: pts, difficulty: q.difficulty, fact: q.fact });
-            playSound(soundWrong); flashStage('bad'); updateHUD();
+            playSound(soundWrong); flashStage('bad'); flashCorners('bad'); updateHUD();
             submitBtn.classList.add('hidden'); nextBtn.classList.remove('hidden'); nextBtn.focus();
           }
         }
