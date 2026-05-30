@@ -114,6 +114,9 @@
         await setDoc(doc(db, 'users', cred.user.uid), { username, email, createdAt: serverTimestamp() });
         window.closeAuthModal();
         trackEvent('sign_up', { method: 'email' });
+        if(window.saveScoreToLeaderboard && window.lastGameScore !== undefined) {
+          window.saveScoreToLeaderboard(window.lastGameScore, window.lastGameDate);
+        }
       } catch(e) { err.textContent = e.message; }
     };
 
@@ -124,6 +127,9 @@
       try {
         await signInWithEmailAndPassword(auth, email, password);
         window.closeAuthModal();
+        if(window.saveScoreToLeaderboard && window.lastGameScore !== undefined) {
+          window.saveScoreToLeaderboard(window.lastGameScore, window.lastGameDate);
+        }
       } catch(e) { err.textContent = e.message; }
     };
 
@@ -137,6 +143,9 @@
           await setDoc(doc(db, 'users', user.uid), { username: user.displayName || user.email, email: user.email, createdAt: serverTimestamp() });
         }
         window.closeAuthModal();
+        if(window.saveScoreToLeaderboard && window.lastGameScore !== undefined) {
+          window.saveScoreToLeaderboard(window.lastGameScore, window.lastGameDate);
+        }
       } catch(e) { err.textContent = e.message; }
     };
 
@@ -1072,6 +1081,7 @@
       const isNew=saveHighScore(score);
       updateHighScoreDisplay(); markAsPlayed(); stopFeedbackSounds();
       trackEvent('game_end', { score: score, outcome: getFightOutcome(score) });
+      window.lastGameScore = score; window.lastGameDate = getCurrentQuestionDate();
       if(window.saveScoreToLeaderboard) window.saveScoreToLeaderboard(score, getCurrentQuestionDate());
       setTimeout(()=>{
         if(outcomeText.includes("Draw")) playSound(document.getElementById('draw'));
