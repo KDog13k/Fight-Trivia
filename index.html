@@ -365,8 +365,8 @@
       @keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
 
       
-      .flash-good { box-shadow: 0 0 60px rgba(46,204,113,0.6),inset 0 0 60px rgba(46,204,113,0.15), 0 0 120px rgba(46,204,113,0.3); border-color:#2ecc71!important; border-width:6px!important; animation:flashbg 600ms ease; }
-      .flash-bad  { box-shadow: 0 0 60px rgba(255,77,77,0.6), inset 0 0 60px rgba(255,77,77,0.15), 0 0 120px rgba(255,77,77,0.3);  border-color:#ff4d4d!important; border-width:6px!important; animation:flashbg 600ms ease; }
+      .flash-good { box-shadow: 0 0 40px rgba(46,204,113,0.25),inset 0 0 40px rgba(46,204,113,0.05); border-color:#2ecc71!important; animation:flashbg 350ms ease; }
+      .flash-bad  { box-shadow: 0 0 40px rgba(255,77,77,0.25), inset 0 0 40px rgba(255,77,77,0.05);  border-color:#ff4d4d!important; animation:flashbg 350ms ease; }
       @keyframes flashbg { 0%{transform:scale(1);} 50%{transform:scale(1.01);} 100%{transform:scale(1);} }
 
       .pop-in { animation: pop .28s ease; }
@@ -898,6 +898,19 @@
     }
 
 
+
+    function flashSidePanels(kind) {
+      const left = document.getElementById('left-ad-col');
+      const right = document.getElementById('right-ad-col');
+      const color = kind === 'good' ? 'rgba(46,204,113,0.3)' : 'rgba(255,77,77,0.3)';
+      [left, right].forEach(el => {
+        if (!el) return;
+        el.style.transition = 'background 0.1s ease';
+        el.style.background = color;
+        setTimeout(() => { el.style.background = ''; }, 600);
+      });
+    }
+
     function flashStage(kind){
       const s=document.getElementById("gameContainer");
       s.classList.remove("flash-good","flash-bad"); void s.offsetWidth;
@@ -1035,14 +1048,14 @@
         score+=pts; roundScore+=pts; roundCorrectCount++;
         momentum=clamp(momentum+(pts/MAX_SCORE_FOR_KO*100));
         resultEl.innerHTML=`✅ Correct! +${pts} points${q.fact?`<br><span class="text-sm opacity-75 mt-1 block">${q.fact}</span>`:''}`;
-        playSound(soundCorrect); flashStage("good");
+        playSound(soundCorrect); flashStage("good"); flashSidePanels("good");
         trackEvent('correct_answer', { difficulty: q.difficulty, points: pts });
         questionEl.animate([{transform:"scale(1)"},{transform:"scale(1.02)"},{transform:"scale(1)"}],{duration:300});
       } else {
         momentum=clamp(momentum-(pts/MAX_SCORE_FOR_KO*100));
         const displayCorrect = (q.answers[0]||"N/A").trim().replace(/\b\w/g, c => c.toUpperCase());
         resultEl.innerHTML=`❌ Incorrect — answer: ${displayCorrect}${q.fact?`<br><span class="text-sm opacity-75 mt-1 block">${q.fact}</span>`:''}`;
-        playSound(soundWrong); flashStage("bad");
+        playSound(soundWrong); flashStage("bad"); flashSidePanels("bad");
         trackEvent('wrong_answer', { difficulty: q.difficulty });
         questionEl.animate([{transform:"scale(1)"},{transform:"scale(.98)"},{transform:"scale(1)"}],{duration:300});
       }
@@ -1278,7 +1291,7 @@
             const displayCorrect = (q.answers[0] || 'N/A').trim().replace(/\b\w/g, c => c.toUpperCase());
             resultEl.innerHTML = '⏰ Time is Up! — answer: ' + displayCorrect + (q.fact ? '<br><span class="text-sm opacity-75 mt-1 block">' + q.fact + '</span>' : '');
             questionHistory.push({ question: q.question, userAnswer: '(timed out)', correctAnswer: displayCorrect, correct: false, points: 0, maxPoints: pts, difficulty: q.difficulty, fact: q.fact });
-            playSound(soundWrong); flashStage('bad'); updateHUD();
+            playSound(soundWrong); flashStage('bad'); flashSidePanels('bad'); updateHUD();
             submitBtn.classList.add('hidden'); nextBtn.classList.remove('hidden'); nextBtn.focus();
           }
         }
