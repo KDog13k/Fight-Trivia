@@ -900,12 +900,16 @@
 
 
     function flashSidePanels(kind) {
-      const panels = document.querySelectorAll('#left-ad-col .cage-panel, #right-ad-col .cage-panel');
-      const color = kind === 'good' ? 'rgba(46,204,113,0.5)' : 'rgba(255,77,77,0.5)';
-      panels.forEach(el => {
-        el.style.transition = 'background 0.1s ease';
-        el.style.background = color;
-        setTimeout(() => { el.style.background = ''; }, 600);
+      const left = document.getElementById('left-ad-col');
+      const right = document.getElementById('right-ad-col');
+      const color = kind === 'good' ? 'rgba(46,204,113,0.6)' : 'rgba(255,77,77,0.6)';
+      [left, right].forEach(col => {
+        if (!col) return;
+        col.querySelectorAll('.cage-panel').forEach(el => {
+          el.style.setProperty('background', color, 'important');
+          el.style.transition = 'background 0.15s ease';
+          setTimeout(() => { el.style.removeProperty('background'); }, 700);
+        });
       });
     }
 
