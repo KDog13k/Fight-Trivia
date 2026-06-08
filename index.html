@@ -744,6 +744,9 @@
     </div>
     <button id="auth-btn-welcome" onclick="showAuthModal()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#aaa;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:0.85rem;margin-bottom:10px;display:block;width:100%;">Sign In / Sign Up to appear on leaderboard</button>
     <button id="pwa-install-btn" onclick="installPWA()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#555;padding:10px 24px;border-radius:8px;cursor:not-allowed;font-size:0.85rem;margin-bottom:16px;width:100%;" disabled>📲 Add to Home Screen</button>
+    <div id="resume-banner" style="display:none;background:rgba(229,9,20,0.15);border:1px solid rgba(229,9,20,0.4);border-radius:8px;padding:10px 16px;margin-bottom:12px;font-size:0.85rem;color:#e50914;">
+      ⚡ You have an unfinished game! Click START FIGHT to continue.
+    </div>
     <button id="welcomeStartBtn" style="background:linear-gradient(135deg,#e50914,#c00813);color:white;border:none;padding:20px 50px;font-size:1.4rem;border-radius:35px;cursor:pointer;font-weight:bold;margin-top:25px;box-shadow:0 8px 25px rgba(0,0,0,0.5);transition:all 0.3s ease;">START FIGHT</button>
     <div style="margin-top:30px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.1);display:flex;justify-content:center;gap:20px;flex-wrap:wrap;">
       <a href="/about.html" style="color:#555;font-size:0.8rem;text-decoration:none;letter-spacing:1px;text-transform:uppercase;">About</a>
@@ -965,6 +968,43 @@
       });
     }
 
+
+    function saveGameState() {
+      if (!questions.length) return;
+      const state = {
+        currentQuestionIndex,
+        score,
+        momentum,
+        roundNumber,
+        roundCorrectCount,
+        roundScore,
+        questionHistory,
+        questionDate: getCurrentQuestionDate()
+      };
+      localStorage.setItem('fightTriviaGameState', JSON.stringify(state));
+    }
+
+    function clearGameState() {
+      localStorage.removeItem('fightTriviaGameState');
+    }
+
+    function loadGameState() {
+      try {
+        const saved = localStorage.getItem('fightTriviaGameState');
+        if (!saved) return null;
+        const state = JSON.parse(saved);
+        // Only restore if it's for the current question set
+        if (state.questionDate !== getCurrentQuestionDate()) {
+          clearGameState();
+          return null;
+        }
+        return state;
+      } catch(e) {
+        clearGameState();
+        return null;
+      }
+    }
+
     function flashStage(kind){
       const s=document.getElementById("gameContainer");
       s.classList.remove("flash-good","flash-bad"); void s.offsetWidth;
@@ -1047,7 +1087,7 @@
       spinner.style.display="none"; loadingText.style.display="none";
       if(!questions.length){ roundLabel.textContent="No valid questions found."; return; }
       roundLabel.textContent="";
-      loadFighterNames(); updateHUD(); updateHighScoreDisplay();
+      loadFighterNames(); updateHUD(); updateHighScoreDisplay(); checkForSavedGame();
     }
 
     function startFight(){
@@ -1057,7 +1097,6 @@
       document.getElementById('outer-layout').style.display='flex';
       showMobileAd();
       document.getElementById('cage-wrapper').style.display='flex';
-      // init AdSense panels
       try{ 
         const ads = document.querySelectorAll('.adsbygoogle');
         ads.forEach(() => (adsbygoogle=window.adsbygoogle||[]).push({}));
@@ -1065,9 +1104,25 @@
       startControls.classList.add('hidden');
       gameBox.classList.remove("hidden");
       trackEvent('game_start');
-      currentQuestionIndex=0; score=0; questionHistory=[];
-      momentum=50; roundNumber=1; roundCorrectCount=0; roundScore=0;
-      hud.classList.remove("hidden"); updateHUD(); playSound(soundBell); showQuestion();
+
+      // Check for saved state
+      const saved = loadGameState();
+      if (saved) {
+        currentQuestionIndex = saved.currentQuestionIndex;
+        score = saved.score;
+        momentum = saved.momentum;
+        roundNumber = saved.roundNumber;
+        roundCorrectCount = saved.roundCorrectCount;
+        roundScore = saved.roundScore;
+        questionHistory = saved.questionHistory;
+      } else {
+        currentQuestionIndex=0; score=0; questionHistory=[];
+        momentum=50; roundNumber=1; roundCorrectCount=0; roundScore=0;
+      }
+
+      hud.classList.remove("hidden"); updateHUD(); 
+      if (!saved) playSound(soundBell);
+      showQuestion();
     }
 
     function showQuestion(){
@@ -1115,6 +1170,7 @@
       }
       updateHUD();
       submitBtn.classList.add('hidden'); nextBtn.classList.remove('hidden'); nextBtn.focus();
+      saveGameState();
     }
 
     function stopFeedbackSounds(){ [soundCorrect,soundWrong].forEach(a=>{ a.pause(); a.currentTime=0; }); }
@@ -1148,7 +1204,7 @@
     function endFight(){
       const outcomeText=getFightOutcome(score);
       const isNew=saveHighScore(score);
-      updateHighScoreDisplay(); markAsPlayed(); stopFeedbackSounds();
+      updateHighScoreDisplay(); markAsPlayed(); stopFeedbackSounds(); clearGameState();
       trackEvent('game_end', { score: score, outcome: getFightOutcome(score) });
       window.lastGameScore = score; window.lastGameDate = getCurrentQuestionDate();
       if(window.saveScoreToLeaderboard) window.saveScoreToLeaderboard(score, getCurrentQuestionDate());
@@ -1347,6 +1403,7 @@
             questionHistory.push({ question: q.question, userAnswer: '(timed out)', correctAnswer: displayCorrect, correct: false, points: 0, maxPoints: pts, difficulty: q.difficulty, fact: q.fact });
             playSound(soundWrong); flashStage('bad'); flashInnerBars('bad'); updateHUD();
             submitBtn.classList.add('hidden'); nextBtn.classList.remove('hidden'); nextBtn.focus();
+      saveGameState();
           }
         }
       }, 1000);
@@ -1408,6 +1465,15 @@
       }
     };
 
+
+    // Check for saved game state and show resume option
+    function checkForSavedGame() {
+      const state = loadGameState();
+      if (state && state.questionDate) {
+        const banner = document.getElementById('resume-banner');
+        if (banner) banner.style.display = 'block';
+      }
+    }
     loadQuestions(); updateHUD();
     document.querySelectorAll('audio').forEach(a=>{ a.volume=0.5; });
 
