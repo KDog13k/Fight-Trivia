@@ -1151,7 +1151,8 @@
       answerInput.disabled=true; submitBtn.disabled=true;
       let pts=0;
       if(q.difficulty==="Easy") pts=50; else if(q.difficulty==="Medium") pts=75; else pts=100;
-      const matched=q.answers.some(a=>a===user);
+      const normalize = s => s.toLowerCase().replace(/\./g, "").replace(/\s+/g, " ").trim();
+      const matched=q.answers.some(a=>normalize(a)===normalize(user));
       questionHistory.push({ question:q.question, userAnswer:displayAnswer, correctAnswer:toTitleCase(q.answers[0]||""), correct:matched, points:matched?pts:0, maxPoints:pts, difficulty:q.difficulty, fact:q.fact });
       if(matched){
         score+=pts; roundScore+=pts; roundCorrectCount++;
